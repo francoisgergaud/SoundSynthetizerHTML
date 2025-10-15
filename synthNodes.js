@@ -1,30 +1,3 @@
-
-class Graph {
-    
-    constructor(){
-        this.nodes={}
-    }
-
-    addNode(synthNode){
-        this.nodes[synthNode.name] = synthNode;
-    }
-
-    getNodes(){
-        return this.nodes;
-    }
-
-    addLink(source, destination){
-        source.node.connect(destination, source.index);
-    }
-}
-
-class Link(){
-    
-    render(){
-
-    }
-}
-
 class BaseOscillator {
     static DEFAULT_FREQUENCY = 440; 
     static DEFAULT_GAIN = 1;

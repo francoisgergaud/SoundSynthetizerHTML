@@ -6,25 +6,6 @@
     <title>Oscillator Sound</title>
 </head>
 <body>
-<!-- <div class="control-group">
-    <label for="frequency">Frequency (Hz): <span id="freqValue">440</span></label>
-    <input type="range" id="frequency" min="20" max="5000" value="440" step="1">
-</div>
-
-<div class="control-group">
-    <label for="waveform">Waveform Type:</label>
-    <select id="waveform">
-        <option value="sine">Sine</option>
-        <option value="square">Square</option>
-        <option value="sawtooth">Sawtooth</option>
-        <option value="triangle">Triangle</option>
-    </select>
-</div>
-
-<div class="control-group">
-    <label for="volume">Volume: <span id="volumeValue">30</span>%</label>
-    <input type="range" id="volume" min="0" max="100" value="30" step="1">
-</div> -->
 <div class="control-group">
     <label for="node">Element Type:</label>
     <select id="nodeType">
@@ -34,10 +15,24 @@
     <input type="text" id="nodeName"/>
     <button id="addNode">Add</button>
 </div>
+
+
+
+<div class="control-group">
+    <label for="link">Link:</label>
+    <select id="source">
+    </select>
+    <select id="destination">
+    </select>
+    <input type="text" id="nodeName"/>
+    <button id="addNode">Add</button>
+</div>
+
 <button id="startBtn">Start Sound</button>
 <button id="stopBtn" class="hidden">Stop Sound</button>
 <div id="nodes"/>
 <script src="synthNodes.js"></script>
+<script src="graph.js"></script>
 <script src="index.js"></script>
 </body>
 </html>
