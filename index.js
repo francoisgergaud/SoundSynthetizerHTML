@@ -1,25 +1,18 @@
 // Create audio context
 const audioContext = new window.AudioContext();
 const graph = new Graph();
-// Update displayed values
-document.getElementById('frequency').addEventListener('input', function() {
-    document.getElementById('freqValue').textContent = this.value;
-    if (mainOsc) {
-        mainOsc.frequency.setValueAtTime(this.value, mainOsc.context.currentTime);
-    }
-});
 
-document.getElementById('volume').addEventListener('input', function() {
-    document.getElementById('volumeValue').textContent = this.value;
-    if (mainGain) {
-        mainGain.gain.setValueAtTime(this.value / 100, mainGain.context.currentTime);
-    }
-});
 
-document.getElementById('waveform').addEventListener('change', function() {
-    if (mainOsc) {
-        mainOsc.type = this.value;
+document.getElementById('addNode').addEventListener('click', function() {
+    nodeTypes = {
+        "lfo": LFO,
+        "vco": VCO,
     }
+    const nodeTypeValue = document.getElementById('nodeType').value;
+    nodeName = document.getElementById('nodeName').value;
+    node = new nodeTypes[nodeTypeValue](nodeName, audioContext);
+    graph.addNode(node);
+    node.render(document.getElementById('nodes'));
 });
 
 // Wait for user interaction

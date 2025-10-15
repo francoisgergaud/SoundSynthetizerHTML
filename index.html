@@ -6,7 +6,7 @@
     <title>Oscillator Sound</title>
 </head>
 <body>
-<div class="control-group">
+<!-- <div class="control-group">
     <label for="frequency">Frequency (Hz): <span id="freqValue">440</span></label>
     <input type="range" id="frequency" min="20" max="5000" value="440" step="1">
 </div>
@@ -24,9 +24,19 @@
 <div class="control-group">
     <label for="volume">Volume: <span id="volumeValue">30</span>%</label>
     <input type="range" id="volume" min="0" max="100" value="30" step="1">
+</div> -->
+<div class="control-group">
+    <label for="node">Element Type:</label>
+    <select id="nodeType">
+        <option value="lfo">Control Oscillator</option>
+        <option value="vco">Sound Oscillator</option>
+    </select>
+    <input type="text" id="nodeName"/>
+    <button id="addNode">Add</button>
 </div>
 <button id="startBtn">Start Sound</button>
 <button id="stopBtn" class="hidden">Stop Sound</button>
+<div id="nodes"/>
 <script src="synthNodes.js"></script>
 <script src="index.js"></script>
 </body>
