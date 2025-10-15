@@ -1,33 +1,6 @@
-let mainOsc = null;
-let mainGain = null;
-
 // Create audio context
 const audioContext = new window.AudioContext();
-
-// Create LFO
-lfo = audioContext.createOscillator();
-lfo.frequency.value = 1; // 1 Hz
-lfo.type = "sawtooth";
-
-// LFO gain
-lfoGain = audioContext.createGain();
-lfoGain.gain.value = -1200; // Modulation depth of 1200 cents
-
-// Create oscillator
-mainOsc = audioContext.createOscillator();
-
-// Create gain node for volume control
-mainGain = audioContext.createGain();
-
-// Connect nodes
-lfo.connect(lfoGain);
-
-lfoGain.connect(mainOsc.detune);
-
-mainOsc.connect(mainGain);
-
-mainGain.connect(audioContext.destination);
-
+const graph = new Graph();
 // Update displayed values
 document.getElementById('frequency').addEventListener('input', function() {
     document.getElementById('freqValue').textContent = this.value;
@@ -54,34 +27,23 @@ document.getElementById('startBtn').addEventListener('click', async function() {
     // Hide start button, show stop button
     this.classList.add('hidden');
     document.getElementById('stopBtn').classList.remove('hidden');
-
-    // Get values from inputs
-    const frequency = document.getElementById('frequency').value;
-    const waveform = document.getElementById('waveform').value;
-    const volume = document.getElementById('volume').value / 100;
-
-    // Set oscillator properties
-    mainOsc.type = waveform;
-    mainOsc.frequency.setValueAtTime(frequency, audioContext.currentTime);
-
-    // Set volume
-    mainGain.gain.setValueAtTime(volume, audioContext.currentTime);
-
-    // Start the oscillator
-    mainOsc.start();
-    lfo.start();
-
+    // Create LFO
+    const lfo = new LFO("lfo", audioContext);
+    graph.addNode(lfo);
+    lfo.setGain(1200);
+    const vco = new VCO("vco", audioContext);
+    graph.addNode(vco);
+    graph.addLink(lfo.getOutputs().output, vco.getInputs().detune)
+    
 });
 
 // Stop button handler
 document.getElementById('stopBtn').addEventListener('click', function() {
-    if (mainOsc) {
-        mainOsc.stop();
-        mainOsc = null;
-        mainGain = null;
-    }
+    vco.stop();
+    lfo.stop();
 
     // Hide stop button, show start button
     this.classList.add('hidden');
     document.getElementById('startBtn').classList.remove('hidden');
 });
+
