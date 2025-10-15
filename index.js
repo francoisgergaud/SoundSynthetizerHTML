@@ -15,6 +15,12 @@ document.getElementById('addNode').addEventListener('click', function() {
     node.render(document.getElementById('nodes'));
 });
 
+document.getElementById('addLink').addEventListener('click', function() {
+    const sourceId = document.getElementById('source').value;
+    const destinationId = document.getElementById('destination').value;
+    graph.addLink(sourceId, destinationId);
+});
+
 // Wait for user interaction
 document.getElementById('startBtn').addEventListener('click', async function() {
     // Hide start button, show stop button

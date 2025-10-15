@@ -6,6 +6,10 @@ class Graph {
 
     addNode(synthNode){
         this.nodes[synthNode.name] = synthNode;
+        const sourceSelectElement = document.getElementById("source");
+        this.setOptionsForSelect(sourceSelectElement, this.getAllOutputs());
+        const destinationSelectElement = document.getElementById("destination");
+        this.setOptionsForSelect(destinationSelectElement, this.getAllInputs());
     }
 
     getNodes(){
@@ -17,7 +21,7 @@ class Graph {
     }
 
     getAllInputs(){
-        result = {}
+        const result = {}
         for(const nodeName in this.nodes){
             const nodeInputs = this.nodes[nodeName].getInputs();
             for(const inputName in nodeInputs){
@@ -29,7 +33,7 @@ class Graph {
     }
 
     getAllOutputs(){
-        result = {}
+        const result = {}
         for(const nodeName in this.nodes){
             const nodeOutputs = this.nodes[nodeName].getOutputs();
             for(const outputName in nodeOutputs){
@@ -40,13 +44,27 @@ class Graph {
         return result;
     }
 
-    setOptionsForSelect(selectElementId, optionsMapping){
-        const selectElement = document.getElementById(selectElementId);
+    setOptionsForSelect(selectElement, optionsMapping){
         selectElement.innerHTML = "";
-        for(optionId in optionsMapping) {
+        for(const optionId in optionsMapping) {
             const newOption = new Option(optionId, optionId);
             selectElement.add(newOption);
         }
     }
+
+    addLink(sourceId, destinationId){
+        const source = this.getAllOutputs()[sourceId];
+        const destination = this.getAllInputs()[destinationId];
+        source.node.connect(destination, source.index);
+    }
+
+
+    // renderLinks(parentDiv){
+    //     parentDiv.innerHTML = "";
+    //     parentDiv.appendChild
+    //     const source = this.getAllOutputs()[sourceId];
+    //     const destination = this.getAllInputs()[destinationId];
+    //     source.node.connect(destination, source.index);
+    // }
 
 }
