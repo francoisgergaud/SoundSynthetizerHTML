@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oscillator Sound</title>
+    
 </head>
 <body>
 <div class="control-group">
@@ -21,21 +22,21 @@
 
 
 
-<div class="control-group">
-    <label for="link">Link:</label>
-    <select id="source">
-    </select>
-    <select id="destination">
-    </select>
-    <button id="addLink">Add</button>
-</div>
-<div id="links"/>
+    <div class="control-group">
+        <label for="link">Link:</label>
+        <select id="source">
+        </select>
+        <select id="destination">
+        </select>
+        <button id="addLink">Add</button>
+    </div>
+    <button id="startBtn">Start Sound</button>
+    <button id="stopBtn" class="hidden">Stop Sound</button>
+    <div id="links"></div>
+    <div id="nodes"></div>
 
-<button id="startBtn">Start Sound</button>
-<button id="stopBtn" class="hidden">Stop Sound</button>
-<div id="nodes"/>
-<script src="synthNodes.js"></script>
-<script src="graph.js"></script>
-<script src="index.js"></script>
+    <script src="synthNodes.js"></script>
+    <script src="graph.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>
