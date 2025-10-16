@@ -76,7 +76,7 @@ class LFO extends BaseOscillator{
         childDiv.innerHTML = `
             <div class="control-group">
                 <label>
-                    <span>${this.name}</span>
+                    <span>-------------------${this.name}-------------------</span>
                 </label>
                 <div class="control-group">
                     <label for="${this.name}-frequency">Frequency (Hz): <span id="${this.name}-freqValue">${this.oscillator.frequency.value}</span></label>
@@ -152,7 +152,7 @@ class VCO extends BaseOscillator{
         childDiv.innerHTML = `
             <div class="control-group">
                 <label>
-                    <span>${this.name}</span>
+                    <span>-------------------${this.name}-------------------</span>
                 </label>
                 <div class="control-group">
                     <label for="${this.name}-frequency">Frequency (Hz): <span id="${this.name}-freqValue">${this.oscillator.frequency.value}</span></label>
@@ -231,7 +231,7 @@ class Delay extends GainNode {
         childDiv.innerHTML = `
             <div class="control-group">
                 <label>
-                    <span>${this.name}</span>
+                    <span>-------------------${this.name}-------------------</span>
                 </label>
                 <div class="control-group">
                     <label for="${this.name}-delayTime">Delay (s): <span id="${this.name}-delayTimeValue">${this.delay.delayTime.value}</span></label>
@@ -309,7 +309,7 @@ class Filter extends GainNode {
         childDiv.innerHTML = `
             <div class="control-group">
                 <label>
-                    <span>${this.name}</span>
+                    <span>-------------------${this.name}-------------------</span>
                 </label>
                 <div class="control-group">
                     <label for="${this.name}-filterType">Filter type: <span id="${this.name}-filterTypeValue">${this.filter.type}</span></label>
