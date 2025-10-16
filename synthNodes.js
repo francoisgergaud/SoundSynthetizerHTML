@@ -60,17 +60,6 @@ class BaseOscillator extends GainNode {
         }
     }
 
-    getOutputs(){
-        const outputs = super.getOutputs();
-
-        outputs["oscillator"] = {
-            "node": this.oscillator,
-            "index": 0,
-        }
-
-        return outputs;
-    }
-
     setType(value) {
         this.oscillator.type=value;
     }
@@ -91,7 +80,7 @@ class LFO extends BaseOscillator{
                 </label>
                 <div class="synth-node-control-group">
                     <label for="${this.name}-frequency">Frequency (Hz): </label>
-                    <input type="range" id="${this.name}-frequency" min="0" max="10" value="${this.oscillator.frequency.value}" step="0.1">
+                    <input type="range" id="${this.name}-frequency" min="0" max="20" value="${this.oscillator.frequency.value}" step="0.1">
                     <span id="${this.name}-freqValue">${this.oscillator.frequency.value}</span>
                 </div>
 
@@ -153,6 +142,17 @@ class VCO extends BaseOscillator{
         let result = super.getInputs();
         result["detune"] = this.oscillator.detune;
         return result;
+    }
+
+    getOutputs(){
+        const outputs = super.getOutputs();
+
+        outputs["oscillator"] = {
+            "node": this.oscillator,
+            "index": 0,
+        }
+
+        return outputs;
     }
 
     render(parentDiv){
