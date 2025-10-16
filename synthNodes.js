@@ -123,7 +123,6 @@ class LFO extends BaseOscillator{
         });
 
         document.getElementById(`${this.name}-gain`).addEventListener('input', (event) => {
-            document.getElementById(`${this.name}-gainValue`).textContent = event.currentTarget.value;
             this.setGain(event.currentTarget.value);
         });
 
