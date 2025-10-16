@@ -8,7 +8,8 @@ document.getElementById('addNode').addEventListener('click', function() {
         "lfo": LFO,
         "vco": VCO,
         "delay": Delay,
-        "music": MusicSequence,
+        "filter": Filter,
+        "music": MusicSequence
     }
     const nodeTypeValue = document.getElementById('nodeType').value;
     nodeName = document.getElementById('nodeName').value;

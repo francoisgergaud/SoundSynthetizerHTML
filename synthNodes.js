@@ -273,6 +273,96 @@ class Delay extends GainNode {
     }
 }
 
+class Filter extends GainNode {
+        constructor(name, audioContext){
+        super(name, audioContext);
+        this.filter = audioContext.createBiquadFilter();
+        this.filter.type = "lowpass";
+        this.filter.frequency.value = 440;
+        this.filter.Q.value = 1;
+        this.filter.connect(this.gain);
+    }
+
+    getInputs(){
+        return {
+            "input": this.filter,
+            "type": this.filter.type,
+            "cutoffFrequency": this.filter.frequency,
+            "Q": this.filter.Q
+        }
+    }
+
+    setFilterType(value) {
+        this.filter.type = value;
+    }
+
+    setCutoffFrequency(value) {
+        this.filter.frequency.setValueAtTime(value, this.audioContext.currentTime);
+    }
+
+    setQ(value) {
+        this.filter.Q.setValueAtTime(value, this.audioContext.currentTime);
+    }
+
+    render(parentDiv) {
+        const childDiv = document.createElement("div");
+        childDiv.innerHTML = `
+            <div class="control-group">
+                <label>
+                    <span>${this.name}</span>
+                </label>
+                <div class="control-group">
+                    <label for="${this.name}-filterType">Filter type: <span id="${this.name}-filterTypeValue">${this.filter.type}</span></label>
+                    <select id="${this.name}-filterType">
+                        <option value="lowpass" ${this.filter.type=='lowpass' ? "selected": ""}>Lowpass</option>
+                        <option value="highpass" ${this.filter.type=='highpass' ? "selected": ""}>Highpass</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="${this.name}-cutoffFrequency">Cutoff Frequency: <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>Hz</label>
+                    <input type="range" id="${this.name}-cutoffFrequency" min="0" max="5000" value="${this.filter.frequency.value}" step="1">
+                </div>
+                
+                <div class="control-group">
+                    <label for="${this.name}-Q">Quality Factor: <span id="${this.name}-QValue">${this.filter.Q.value}</span></label>
+                    <input type="range" id="${this.name}-Q" min="1" max="10" value="${this.filter.Q.value}" step="1">
+                </div>
+
+                <div class="control-group">
+                    <label for="${this.name}-mute">Mute:</label>
+                    <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
+                </div>
+            </div>
+        `;
+
+        parentDiv.appendChild(childDiv);
+
+        // Update displayed values
+        document.getElementById(`${this.name}-filterType`).addEventListener('change', (event) => {
+            this.setFilterType(event.currentTarget.value);
+        });
+
+        document.getElementById(`${this.name}-cutoffFrequency`).addEventListener('input', (event) => {
+            document.getElementById(`${this.name}-cutoffFrequencyValue`).textContent = event.currentTarget.value;
+            this.setCutoffFrequency(event.currentTarget.value);
+        });
+
+        document.getElementById(`${this.name}-Q`).addEventListener('input', (event) => {
+            document.getElementById(`${this.name}-QValue`).textContent = event.currentTarget.value;
+            this.setQ(event.currentTarget.value);
+        });
+
+        document.getElementById(`${this.name}-mute`).addEventListener('change', (event) => {
+            if(event.currentTarget.checked){
+                this.mute();
+            } else {
+                this.unmute();
+            }
+        });
+    }
+}
+
 class Sequencer {
     constructor(name, audioContext) {
         this.name = name;
