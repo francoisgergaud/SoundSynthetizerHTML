@@ -97,10 +97,10 @@ class LFO extends BaseOscillator{
                 <div class="control-group">
                     <label for="${this.name}-waveform">Waveform Type:</label>
                     <select id="${this.name}-waveform">
-                        <option value="sine" ${this.oscillator.type=='sine' ? "selected": ""}>Sine</option>
-                        <option value="square" ${this.oscillator.type=='square' ? "selected": ""}>Square</option>
-                        <option value="sawtooth" ${this.oscillator.type=='sawtooth' ? "selected": ""}>Sawtooth</option>
-                        <option value="triangle" ${this.oscillator.type=='triangle' ? "selected": ""}>Triangle</option>
+                        <option value="sine" ${this.oscillator.type==='sine' ? "selected": ""}>Sine</option>
+                        <option value="square" ${this.oscillator.type==='square' ? "selected": ""}>Square</option>
+                        <option value="sawtooth" ${this.oscillator.type==='sawtooth' ? "selected": ""}>Sawtooth</option>
+                        <option value="triangle" ${this.oscillator.type==='triangle' ? "selected": ""}>Triangle</option>
                     </select>
                 </div>
 
@@ -146,10 +146,6 @@ class VCO extends BaseOscillator{
         super(name, audioContext);
     }
 
-    setDetune(value) {
-        this.oscillator.detune.setValueAtTime(value, this.audioContext.currentTime)
-    }
-
     getInputs(){
         let result = super.getInputs();
         result["detune"] = this.oscillator.detune;
@@ -172,10 +168,10 @@ class VCO extends BaseOscillator{
                 <div class="control-group">
                     <label for="${this.name}-waveform">Waveform Type:</label>
                     <select id="${this.name}-waveform">
-                        <option value="sine" ${this.oscillator.type=='sine' ? "selected": ""}>Sine</option>
-                        <option value="square" ${this.oscillator.type=='square' ? "selected": ""}>Square</option>
-                        <option value="sawtooth" ${this.oscillator.type=='sawtooth' ? "selected": ""}>Sawtooth</option>
-                        <option value="triangle" ${this.oscillator.type=='triangle' ? "selected": ""}>Triangle</option>
+                        <option value="sine" ${this.oscillator.type==='sine' ? "selected": ""}>Sine</option>
+                        <option value="square" ${this.oscillator.type==='square' ? "selected": ""}>Square</option>
+                        <option value="sawtooth" ${this.oscillator.type==='sawtooth' ? "selected": ""}>Sawtooth</option>
+                        <option value="triangle" ${this.oscillator.type==='triangle' ? "selected": ""}>Triangle</option>
                     </select>
                 </div>
 
@@ -325,8 +321,8 @@ class Filter extends GainNode {
                 <div class="control-group">
                     <label for="${this.name}-filterType">Filter type: <span id="${this.name}-filterTypeValue">${this.filter.type}</span></label>
                     <select id="${this.name}-filterType">
-                        <option value="lowpass" ${this.filter.type=='lowpass' ? "selected": ""}>Lowpass</option>
-                        <option value="highpass" ${this.filter.type=='highpass' ? "selected": ""}>Highpass</option>
+                        <option value="lowpass" ${this.filter.type==='lowpass' ? "selected": ""}>Lowpass</option>
+                        <option value="highpass" ${this.filter.type==='highpass' ? "selected": ""}>Highpass</option>
                     </select>
                 </div>
 
@@ -433,7 +429,7 @@ class Sequencer {
         this.nextNoteTime = this.context.currentTime;
 
         // Start the lookahead scheduler (running every 25ms)
-        this.intervalId = setInterval(() => {
+        setInterval(() => {
             this.scheduler();
         }, this.SCHEDULER_INTERVAL);
 
