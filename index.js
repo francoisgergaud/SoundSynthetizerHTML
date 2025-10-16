@@ -32,15 +32,29 @@ document.getElementById('addLink').addEventListener('click', function() {
     document.getElementById('links').appendChild(childDiv)
 });
 
-document.getElementById('startBtn').addEventListener('click', async function() {
+document.getElementById('muteAllBtn').addEventListener('click', async function() {
     // Hide start button, show stop button
     this.classList.add('hidden');
-    document.getElementById('stopBtn').classList.remove('hidden');
-    // Create LFO
-    const lfo = new LFO("lfo", audioContext);
-    graph.addNode(lfo);
-    lfo.setGain(1200);
-    const vco = new VCO("vco", audioContext);
-    graph.addNode(vco);
-    graph.addLink(lfo.getOutputs().output, vco.getInputs().detune)
+    document.getElementById('unmuteAllBtn').classList.remove('hidden');
+    for(const node in graph.nodes){
+        node.mute();
+    }
+});
+
+document.getElementById('muteAllBtn').addEventListener('click', async function() {
+    // Hide start button, show stop button
+    this.classList.add('hidden');
+    document.getElementById('unmuteAllBtn').classList.remove('hidden');
+    for(const nodeName in graph.nodes){
+        graph.nodes[nodeName].mute();
+    }
+});
+
+document.getElementById('unmuteAllBtn').addEventListener('click', async function() {
+    // Hide start button, show stop button
+    this.classList.add('hidden');
+    document.getElementById('muteAllBtn').classList.remove('hidden');
+    for(const nodeName in graph.nodes){
+        graph.nodes[nodeName].unmute();
+    }
 });
