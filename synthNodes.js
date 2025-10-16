@@ -38,7 +38,7 @@ class GainNode {
 }
 
 class BaseOscillator extends GainNode {
-    static DEFAULT_FREQUENCY = 440; 
+    static DEFAULT_FREQUENCY = 440;
     static DEFAULT_GAIN = 1;
 
     constructor(name, audioContext) {
@@ -271,4 +271,121 @@ class Delay extends GainNode {
             }
         });
     }
+}
+
+class Sequencer {
+    constructor(name, audioContext) {
+        this.name = name;
+        this.context = audioContext;
+        this.currentStep = 0;
+
+        this.SCHEDULER_INTERVAL = 25; // How often (ms) the scheduler looks ahead
+        this.LOOKAHEAD_TIME = 0.1;    // How far (s) to schedule notes into the future
+        this.nextNoteTime = 0.0;      // The precise context.currentTime when the next note should play
+        this.noteLength = 0.0;        // The length of a single note in seconds
+
+        this.outputNode = audioContext.createConstantSource();
+        this.outputNode.offset.value = 0; // Initialize to zero frequency
+        this.outputNode.start(0);
+    }
+
+    getMelody() {
+        return [];
+    }
+
+    scheduler() {
+        // While the next note is within the lookahead buffer...
+        while (this.nextNoteTime < this.context.currentTime + this.LOOKAHEAD_TIME) {
+
+            // Schedule the note change precisely at nextNoteTime
+            this._scheduleNoteChange(this.nextNoteTime);
+
+            // Advance the nextNoteTime for the following note
+            this.nextNoteTime += this.noteLength;
+
+            // Advance the melody step index
+            this.currentStep = (this.currentStep + 1) % this.getMelody().length;
+        }
+    }
+
+    _scheduleNoteChange(time) {
+        const cents = this.getMelody()[this.currentStep];
+        this.outputNode.offset.setValueAtTime(cents, time);
+    }
+
+    start(bpm, noteDuration = 4) {
+        // Calculate note length in seconds
+        const beatDuration = 60 / bpm;
+        this.noteLength = beatDuration * (4 / noteDuration);
+
+        // Initialize the next note time to the current context time
+        this.nextNoteTime = this.context.currentTime;
+
+        // Start the lookahead scheduler (running every 25ms)
+        this.intervalId = setInterval(() => {
+            this.scheduler();
+        }, this.SCHEDULER_INTERVAL);
+
+        // Run scheduler once immediately to schedule the very first note
+        this.scheduler();
+    }
+}
+
+
+class Melody extends Sequencer{
+
+    getMelody() {
+        return [
+            0,    // A3
+            1200, // A4 (+1 octave)
+            1000, // G4 (+10 semitones)
+            700,  // E4 (+7 semitones)
+            1000, // G4
+            700,  // E4
+            500,  // D4 (+5 semitones)
+            300   // C4 (+3 semitones)
+        ];
+    }
+}
+
+class Bass extends Sequencer{
+    getMelody() {
+        return [
+            0,    // A
+            200,  // B
+            300,  // C
+            500,  // D
+        ];
+    }
+}
+
+class MusicSequence {
+        constructor(name, audioContext) {
+        this.name = name;
+
+        this.melody = new Melody(`${name}/melody`, audioContext);
+        this.bass = new Bass(`${name}/bass`, audioContext);
+
+        this.melody.start(90, 16);
+        this.bass.start(90, 2);
+    }
+
+    getOutputs() {
+        return {
+            "bass": {
+                "node": this.bass.outputNode,
+                "index": 0,
+            },
+            "melody": {
+                "node": this.melody.outputNode,
+                "index": 0,
+            }
+        }
+    }
+
+    getInputs() {
+        return {}
+    }
+
+    render(parentDiv) {}
 }

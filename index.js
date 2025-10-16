@@ -7,7 +7,8 @@ document.getElementById('addNode').addEventListener('click', function() {
     nodeTypes = {
         "lfo": LFO,
         "vco": VCO,
-        "delay": Delay
+        "delay": Delay,
+        "music": MusicSequence,
     }
     const nodeTypeValue = document.getElementById('nodeType').value;
     nodeName = document.getElementById('nodeName').value;
