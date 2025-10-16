@@ -288,7 +288,8 @@ class Filter extends GainNode {
             "input": this.filter,
             "type": this.filter.type,
             "cutoffFrequency": this.filter.frequency,
-            "Q": this.filter.Q
+            "Q": this.filter.Q,
+            "gain": this.gain.gain
         }
     }
 
@@ -328,6 +329,11 @@ class Filter extends GainNode {
                     <label for="${this.name}-Q">Quality Factor: <span id="${this.name}-QValue">${this.filter.Q.value}</span></label>
                     <input type="range" id="${this.name}-Q" min="1" max="10" value="${this.filter.Q.value}" step="1">
                 </div>
+                
+                <div class="control-group">
+                    <label for="${this.name}-volume">Volume: <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}</span>%</label>
+                    <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
+                </div>
 
                 <div class="control-group">
                     <label for="${this.name}-mute">Mute:</label>
@@ -351,6 +357,11 @@ class Filter extends GainNode {
         document.getElementById(`${this.name}-Q`).addEventListener('input', (event) => {
             document.getElementById(`${this.name}-QValue`).textContent = event.currentTarget.value;
             this.setQ(event.currentTarget.value);
+        });
+
+        document.getElementById(`${this.name}-volume`).addEventListener('input', (event) => {
+            document.getElementById(`${this.name}-volumeValue`).textContent = event.currentTarget.value;
+            this.setGain(event.currentTarget.value/100);
         });
 
         document.getElementById(`${this.name}-mute`).addEventListener('change', (event) => {
