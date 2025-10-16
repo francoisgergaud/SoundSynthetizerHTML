@@ -395,6 +395,7 @@ class Sequencer {
         this.name = name;
         this.context = audioContext;
         this.currentStep = 0;
+        this.intervalId = null;
 
         this.SCHEDULER_INTERVAL = 25; // How often (ms) the scheduler looks ahead
         this.LOOKAHEAD_TIME = 0.1;    // How far (s) to schedule notes into the future
@@ -431,6 +432,8 @@ class Sequencer {
     }
 
     start(bpm, noteDuration = 4) {
+        if (this.intervalId) this.stop();
+
         // Calculate note length in seconds
         const beatDuration = 60 / bpm;
         this.noteLength = beatDuration * (4 / noteDuration);
@@ -439,12 +442,23 @@ class Sequencer {
         this.nextNoteTime = this.context.currentTime;
 
         // Start the lookahead scheduler (running every 25ms)
-        setInterval(() => {
+        this.intervalId = setInterval(() => {
             this.scheduler();
         }, this.SCHEDULER_INTERVAL);
 
         // Run scheduler once immediately to schedule the very first note
         this.scheduler();
+    }
+
+    stop() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+            this.currentStep = 0;
+            // Reset detune back to 0 when stopping
+            this.outputNode.offset.setValueAtTime(0, this.context.currentTime);
+            console.log("Melody stopped.");
+        }
     }
 }
 
@@ -483,20 +497,19 @@ class MusicSequence {
         this.melody = new Melody(`${name}/melody`, audioContext);
         this.bass = new Bass(`${name}/bass`, audioContext);
 
-        this.melody.start(90, 16);
-        this.bass.start(90, 2);
+        this.start(90);
     }
 
     getOutputs() {
         return {
+            "melody": {
+                "node": this.melody.outputNode,
+                "index": 0,
+            },
             "bass": {
                 "node": this.bass.outputNode,
                 "index": 0,
             },
-            "melody": {
-                "node": this.melody.outputNode,
-                "index": 0,
-            }
         }
     }
 
@@ -504,5 +517,15 @@ class MusicSequence {
         return {}
     }
 
-    render(parentDiv) {}
+    start(bpm) {
+            this.melody.start(bpm, 16);
+            this.bass.start(bpm, 2);
+    }
+
+    stop(bpm) {
+            this.melody.stop();
+            this.bass.stop();
+    }
+
+    render() {}
 }
