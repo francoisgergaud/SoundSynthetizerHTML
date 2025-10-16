@@ -105,7 +105,7 @@ class LFO extends BaseOscillator{
                 </div>
 
                 <div class="control-group">
-                    <label for="${this.name}-gain">Gain: <span id="${this.name}-gainValue">${this.gain.gain.value}</span>%</label>
+                    <label for="${this.name}-gain">Gain: </label>
                     <input type="text" id="${this.name}-gain" value="${this.gain.gain.value}">
                 </div>
 
