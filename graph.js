@@ -12,14 +12,6 @@ class Graph {
         this.setOptionsForSelect(destinationSelectElement, this.getAllInputs());
     }
 
-    getNodes(){
-        return this.nodes;
-    }
-
-    addLink(source, destination){
-        source.node.connect(destination, source.index);
-    }
-
     getAllInputs(){
         const result = {}
         for(const nodeName in this.nodes){
@@ -61,14 +53,4 @@ class Graph {
         const destination = this.getAllInputs()[destinationId];
         source.node.connect(destination, source.index);
     }
-
-
-    // renderLinks(parentDiv){
-    //     parentDiv.innerHTML = "";
-    //     parentDiv.appendChild
-    //     const source = this.getAllOutputs()[sourceId];
-    //     const destination = this.getAllInputs()[destinationId];
-    //     source.node.connect(destination, source.index);
-    // }
-
 }

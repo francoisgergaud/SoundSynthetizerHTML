@@ -4,7 +4,7 @@ const graph = new Graph();
 
 
 document.getElementById('addNode').addEventListener('click', function() {
-    nodeTypes = {
+    const nodeTypes = {
         "lfo": LFO,
         "vco": VCO,
         "delay": Delay,
@@ -12,8 +12,11 @@ document.getElementById('addNode').addEventListener('click', function() {
         "music": MusicSequence
     }
     const nodeTypeValue = document.getElementById('nodeType').value;
-    nodeName = document.getElementById('nodeName').value;
-    node = new nodeTypes[nodeTypeValue](nodeName, audioContext);
+    let nodeName = document.getElementById('nodeName').value;
+    if (nodeName === "") {
+        return;
+    }
+    const node = new nodeTypes[nodeTypeValue](nodeName, audioContext);
     graph.addNode(node);
     node.render(document.getElementById('nodes'));
 });
@@ -24,7 +27,6 @@ document.getElementById('addLink').addEventListener('click', function() {
     graph.addLink(sourceId, destinationId);
 });
 
-// Wait for user interaction
 document.getElementById('startBtn').addEventListener('click', async function() {
     // Hide start button, show stop button
     this.classList.add('hidden');
@@ -36,16 +38,4 @@ document.getElementById('startBtn').addEventListener('click', async function() {
     const vco = new VCO("vco", audioContext);
     graph.addNode(vco);
     graph.addLink(lfo.getOutputs().output, vco.getInputs().detune)
-    
 });
-
-// Stop button handler
-document.getElementById('stopBtn').addEventListener('click', function() {
-    vco.stop();
-    lfo.stop();
-
-    // Hide stop button, show start button
-    this.classList.add('hidden');
-    document.getElementById('startBtn').classList.remove('hidden');
-});
-
