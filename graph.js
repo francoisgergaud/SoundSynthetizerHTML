@@ -1,3 +1,5 @@
+const nodeConnectorEl = document.getElementById("nodeConnector");
+
 class Graph {
     
     constructor(){
@@ -11,6 +13,7 @@ class Graph {
         this.setOptionsForSelect(sourceSelectElement, this.getAllOutputs());
         const destinationSelectElement = document.getElementById("destination");
         this.setOptionsForSelect(destinationSelectElement, this.getAllInputs());
+        nodeConnectorEl.style.display = "block";
     }
 
     getAllInputs(){
@@ -53,7 +56,7 @@ class Graph {
         const source = this.getAllOutputs()[sourceId];
         const destination = this.getAllInputs()[destinationId];
         source.node.connect(destination, source.index);
-        const linkId = sourceId + "@" + destinationId;
+        const linkId = sourceId + "&nbsp;-->&nbsp;" + destinationId;
         this.links[linkId] = {"source": sourceId, "destination": destination};
         return linkId;
     }

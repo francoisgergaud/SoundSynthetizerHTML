@@ -15,24 +15,35 @@
         <option value="filter">Filter</option>
         <option value="music">Music Sequence</option>
     </select>
+    &nbsp;
     <input type="text" id="nodeName" placeholder="name"/>
+    
+    &nbsp;
     <button id="addNode">Add</button>
 </div>
 
 
 
-<div class="control-group">
+<div id="nodeConnector" class="control-group">
+    <label for="source">
+        from
+    </label>
+    &nbsp;
     <select id="source">
     </select>
+    &nbsp;
+    <label for="destination">
+        to
+    </label>
+    &nbsp;
     <select id="destination">
     </select>
+    &nbsp;
     <button id="addLink">Connect nodes</button>
 </div>
-<div class="control-group">
-    <button id="muteAllBtn">Mute all</button>
-    <button id="unmuteAllBtn" class="hidden">Unmute all</button>
+<div id="links">
+    <h2>Routing</h2>
 </div>
-<div id="links"></div>
 <div id="nodes"></div>
 
     <script src="synthNodes.js"></script>

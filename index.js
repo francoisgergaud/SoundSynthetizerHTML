@@ -31,30 +31,3 @@ document.getElementById('addLink').addEventListener('click', function() {
     `
     document.getElementById('links').appendChild(childDiv)
 });
-
-document.getElementById('muteAllBtn').addEventListener('click', async function() {
-    // Hide start button, show stop button
-    this.classList.add('hidden');
-    document.getElementById('unmuteAllBtn').classList.remove('hidden');
-    for(const node in graph.nodes){
-        node.mute();
-    }
-});
-
-document.getElementById('muteAllBtn').addEventListener('click', async function() {
-    // Hide start button, show stop button
-    this.classList.add('hidden');
-    document.getElementById('unmuteAllBtn').classList.remove('hidden');
-    for(const nodeName in graph.nodes){
-        graph.nodes[nodeName].mute();
-    }
-});
-
-document.getElementById('unmuteAllBtn').addEventListener('click', async function() {
-    // Hide start button, show stop button
-    this.classList.add('hidden');
-    document.getElementById('muteAllBtn').classList.remove('hidden');
-    for(const nodeName in graph.nodes){
-        graph.nodes[nodeName].unmute();
-    }
-});
