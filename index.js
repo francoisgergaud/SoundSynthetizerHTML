@@ -7,6 +7,7 @@ document.getElementById('addNode').addEventListener('click', function() {
     nodeTypes = {
         "lfo": LFO,
         "vco": VCO,
+        "delay": Delay
     }
     const nodeTypeValue = document.getElementById('nodeType').value;
     nodeName = document.getElementById('nodeName').value;

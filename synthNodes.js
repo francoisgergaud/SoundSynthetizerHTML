@@ -1,39 +1,20 @@
-class BaseOscillator {
-    static DEFAULT_FREQUENCY = 440; 
-    static DEFAULT_GAIN = 1;
-
-    constructor(name, audioContext){
-        this.name = name;
+class GainNode {
+    constructor(name, audioContext) {
+        this.name = name
         this.audioContext = audioContext;
-        this.oscillator = audioContext.createOscillator();
-        this.oscillator.frequency.value = this.constructor.DEFAULT_FREQUENCY;
+
         this.gain = audioContext.createGain();
-        this.gain.gain.value = this.constructor.DEFAULT_GAIN;
+        this.gain.gain.value = 1;
+
         this.muter = audioContext.createGain();
         this.muter.gain.value = 1;
-        this.oscillator.connect(this.gain);
-        this.gain.connect(this.muter);
         this.isMuted = false;
-        this.oscillator.start();
-    }
 
-    setFrequency(value) {
-        this.oscillator.frequency.setValueAtTime(value, this.audioContext.currentTime)
+        this.gain.connect(this.muter);
     }
 
     setGain(value) {
-        this.gain.gain.setValueAtTime(value, this.audioContext.currentTime)
-    }
-
-    getInputs(){
-        return {
-            "gain": this.gain.gain,
-            "frequency": this.oscillator.frequency,
-        }
-    }
-
-    setType(value) {
-        this.oscillator.type=value;
+        this.gain.gain.setValueAtTime(value, this.audioContext.currentTime);
     }
 
     unmute() {
@@ -54,8 +35,34 @@ class BaseOscillator {
             }
         }
     }
+}
 
-    
+class BaseOscillator extends GainNode {
+    static DEFAULT_FREQUENCY = 440; 
+    static DEFAULT_GAIN = 1;
+
+    constructor(name, audioContext) {
+        super(name, audioContext);
+        this.oscillator = audioContext.createOscillator();
+        this.oscillator.frequency.value = this.constructor.DEFAULT_FREQUENCY;
+        this.oscillator.connect(this.gain);
+        this.oscillator.start();
+    }
+
+    setFrequency(value) {
+        this.oscillator.frequency.setValueAtTime(value, this.audioContext.currentTime)
+    }
+
+    getInputs(){
+        return {
+            "frequency": this.oscillator.frequency,
+            "gain": this.gain.gain,
+        }
+    }
+
+    setType(value) {
+        this.oscillator.type=value;
+    }
 }
 
 class LFO extends BaseOscillator{
@@ -127,9 +134,8 @@ class VCO extends BaseOscillator{
 
     constructor(name, audioContext) {
         super(name, audioContext);
-        this.muter.connect(audioContext.destination);
     }
-    
+
     setDetune(value) {
         this.oscillator.detune.setValueAtTime(value, this.audioContext.currentTime)
     }
@@ -198,5 +204,90 @@ class VCO extends BaseOscillator{
             }
         });
     }
+}
 
+class Delay extends GainNode {
+    constructor(name, audioContext){
+        super(name, audioContext);
+        this.delay = audioContext.createDelay();
+        this.delay.delayTime.value = 0.25;
+        this.delay.connect(this.gain);
+    }
+
+    getInputs(){
+        return {
+            "input": this.delay,
+            "delayTime": this.delay.delayTime,
+            "gain": this.gain.gain
+        }
+    }
+
+    getOutputs() {
+        return {
+            "output": {
+                "node": this.muter,
+                "index": 0
+            }
+        }
+    }
+
+    setDelayTime(seconds) {
+        this.delay.delayTime.setValueAtTime(seconds, this.audioContext.currentTime);
+    }
+
+    unmute() {
+        this.muter.gain.value= 1;
+        this.isMuted = false;
+    }
+
+    mute() {
+        this.muter.gain.value= 0;
+        this.isMuted = true;
+    }
+
+    render(parentDiv) {
+        const childDiv = document.createElement("div");
+        childDiv.innerHTML = `
+            <div class="control-group">
+                <label>
+                    <span>${this.name}</span>
+                </label>
+                <div class="control-group">
+                    <label for="${this.name}-delayTime">Delay (s): <span id="${this.name}-delayTimeValue">${this.delay.delayTime.value}</span></label>
+                    <input type="range" id="${this.name}-delayTime" min="0" max="1" value="${this.delay.delayTime.value}" step="0.05">
+                </div>
+
+                <div class="control-group">
+                    <label for="${this.name}-volume">Volume: <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}</span>%</label>
+                    <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
+                </div>
+
+                <div class="control-group">
+                    <label for="${this.name}-mute">Mute:</label>
+                    <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
+                </div>
+            </div>
+        `;
+
+        parentDiv.appendChild(childDiv);
+
+        // Update displayed values
+        document.getElementById(`${this.name}-delayTime`).addEventListener('input', (event) => {
+            document.getElementById(`${this.name}-delayTimeValue`).textContent = event.currentTarget.value;
+            this.setDelayTime(event.currentTarget.value);
+        });
+
+        document.getElementById(`${this.name}-volume`).addEventListener('input', (event) => {
+            document.getElementById(`${this.name}-volumeValue`).textContent = event.currentTarget.value;
+            this.setGain(event.currentTarget.value / 100);
+        });
+
+        document.getElementById(`${this.name}-mute`).addEventListener('change', (event) => {
+            if(event.currentTarget.checked){
+                this.mute();
+            } else {
+                this.unmute();
+            }
+        });
+    }
 }

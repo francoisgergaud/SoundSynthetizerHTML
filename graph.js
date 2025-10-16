@@ -29,6 +29,9 @@ class Graph {
                 result[key] = nodeInputs[inputName];
             }   
         }
+
+        result["speakers"] = audioContext.destination
+
         return result;
     }
 
@@ -41,6 +44,7 @@ class Graph {
                 result[key] = nodeOutputs[outputName];
             }   
         }
+
         return result;
     }
 
