@@ -222,27 +222,8 @@ class Delay extends GainNode {
         }
     }
 
-    getOutputs() {
-        return {
-            "output": {
-                "node": this.muter,
-                "index": 0
-            }
-        }
-    }
-
     setDelayTime(seconds) {
         this.delay.delayTime.setValueAtTime(seconds, this.audioContext.currentTime);
-    }
-
-    unmute() {
-        this.muter.gain.value= 1;
-        this.isMuted = false;
-    }
-
-    mute() {
-        this.muter.gain.value= 0;
-        this.isMuted = true;
     }
 
     render(parentDiv) {
