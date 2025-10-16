@@ -1,7 +1,8 @@
 class Graph {
     
     constructor(){
-        this.nodes={}
+        this.nodes={};
+        this.links={};
     }
 
     addNode(synthNode){
@@ -52,5 +53,8 @@ class Graph {
         const source = this.getAllOutputs()[sourceId];
         const destination = this.getAllInputs()[destinationId];
         source.node.connect(destination, source.index);
+        const linkId = sourceId + "@" + destinationId;
+        this.links[linkId] = {"source": sourceId, "destination": destination};
+        return linkId;
     }
 }

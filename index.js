@@ -24,7 +24,12 @@ document.getElementById('addNode').addEventListener('click', function() {
 document.getElementById('addLink').addEventListener('click', function() {
     const sourceId = document.getElementById('source').value;
     const destinationId = document.getElementById('destination').value;
-    graph.addLink(sourceId, destinationId);
+    const linkId = graph.addLink(sourceId, destinationId);
+    const childDiv = document.createElement("div");
+    childDiv.innerHTML = `
+        ${linkId}
+    `
+    document.getElementById('links').appendChild(childDiv)
 });
 
 document.getElementById('startBtn').addEventListener('click', async function() {

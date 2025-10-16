@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oscillator Sound</title>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
 <div class="control-group">
-    <label for="node">Element Type:</label>
     <select id="nodeType">
         <option value="vco">Sound Oscillator</option>
         <option value="lfo">Low Freq. Oscillator</option>
@@ -15,27 +15,28 @@
         <option value="filter">Filter</option>
         <option value="music">Music Sequence</option>
     </select>
-    <input type="text" id="nodeName"/>
+    <input type="text" id="nodeName" placeholder="name"/>
     <button id="addNode">Add</button>
 </div>
 
 
 
 <div class="control-group">
-    <label for="link">Link:</label>
     <select id="source">
     </select>
     <select id="destination">
     </select>
-    <button id="addLink">Add</button>
+    <button id="addLink">Connect nodes</button>
 </div>
-<div id="links"/>
+<div class="control-group">
+    <button id="startBtn">Start Sound</button>
+    <button id="stopBtn" class="hidden">Stop Sound</button>
+</div>
+<div id="links"></div>
+<div id="nodes"></div>
 
-<button id="startBtn">Start Sound</button>
-<button id="stopBtn" class="hidden">Stop Sound</button>
-<div id="nodes"/>
-<script src="synthNodes.js"></script>
-<script src="graph.js"></script>
-<script src="index.js"></script>
+    <script src="synthNodes.js"></script>
+    <script src="graph.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>

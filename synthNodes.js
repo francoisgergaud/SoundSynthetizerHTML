@@ -85,16 +85,17 @@ class LFO extends BaseOscillator{
 
         const childDiv = document.createElement("div");
         childDiv.innerHTML = `
-            <div class="control-group">
-                <label>
-                    <span>-------------------${this.name}-------------------</span>
+            <div class="synth-node">
+                <label class="header">
+                    ${this.name}
                 </label>
-                <div class="control-group">
-                    <label for="${this.name}-frequency">Frequency (Hz): <span id="${this.name}-freqValue">${this.oscillator.frequency.value}</span></label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-frequency">Frequency (Hz): </label>
                     <input type="range" id="${this.name}-frequency" min="0" max="10" value="${this.oscillator.frequency.value}" step="0.1">
+                    <span id="${this.name}-freqValue">${this.oscillator.frequency.value}</span>
                 </div>
 
-                <div class="control-group">
+                <div class="synth-node-control-group">
                     <label for="${this.name}-waveform">Waveform Type:</label>
                     <select id="${this.name}-waveform">
                         <option value="sine" ${this.oscillator.type==='sine' ? "selected": ""}>Sine</option>
@@ -105,11 +106,13 @@ class LFO extends BaseOscillator{
                 </div>
 
                 <div class="control-group">
+                <div class="synth-node-control-group">
                     <label for="${this.name}-gain">Gain: </label>
                     <input type="text" id="${this.name}-gain" value="${this.gain.gain.value}">
+                    <span id="${this.name}-gainValue">${this.gain.gain.value}</span>%
                 </div>
 
-                <div class="control-group">
+                <div class="synth-node-control-group">
                     <label for="${this.name}-mute">Mute:</label>
                     <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
                 </div>
@@ -156,16 +159,17 @@ class VCO extends BaseOscillator{
 
         const childDiv = document.createElement("div");
         childDiv.innerHTML = `
-            <div class="control-group">
-                <label>
-                    <span>-------------------${this.name}-------------------</span>
+            <div class="synth-node">
+                <label class="header">
+                    ${this.name}
                 </label>
-                <div class="control-group">
-                    <label for="${this.name}-frequency">Frequency (Hz): <span id="${this.name}-freqValue">${this.oscillator.frequency.value}</span></label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-frequency">Frequency (Hz): </label>
                     <input type="range" id="${this.name}-frequency" min="20" max="5000" value="${this.oscillator.frequency.value}" step="1">
+                    <span id="${this.name}-freqValue">${this.oscillator.frequency.value}</span>
                 </div>
 
-                <div class="control-group">
+                <div class="synth-node-control-group">
                     <label for="${this.name}-waveform">Waveform Type:</label>
                     <select id="${this.name}-waveform">
                         <option value="sine" ${this.oscillator.type==='sine' ? "selected": ""}>Sine</option>
@@ -175,12 +179,13 @@ class VCO extends BaseOscillator{
                     </select>
                 </div>
 
-                <div class="control-group">
-                    <label for="${this.name}-volume">Volume: <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}</span>%</label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-volume">Volume: </label>
                     <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
+                    <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}%</span>
                 </div>
 
-                <div class="control-group">
+                <div class="synth-node-control-group">
                     <label for="${this.name}-mute">Mute:</label>
                     <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
                 </div>
@@ -235,21 +240,23 @@ class Delay extends GainNode {
     render(parentDiv) {
         const childDiv = document.createElement("div");
         childDiv.innerHTML = `
-            <div class="control-group">
-                <label>
-                    <span>-------------------${this.name}-------------------</span>
+            <div class="synth-node">
+                <label class="header">
+                    ${this.name}
                 </label>
-                <div class="control-group">
-                    <label for="${this.name}-delayTime">Delay (s): <span id="${this.name}-delayTimeValue">${this.delay.delayTime.value}</span></label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-delayTime">Delay (s): </label>
                     <input type="range" id="${this.name}-delayTime" min="0" max="1" value="${this.delay.delayTime.value}" step="0.05">
+                    <span id="${this.name}-delayTimeValue">${this.delay.delayTime.value}</span>
                 </div>
 
-                <div class="control-group">
-                    <label for="${this.name}-volume">Volume: <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}</span>%</label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-volume">Volume: </label>
                     <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
+                    <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}%</span>
                 </div>
 
-                <div class="control-group">
+                <div class="synth-node-control-group">
                     <label for="${this.name}-mute">Mute:</label>
                     <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
                 </div>
@@ -314,26 +321,29 @@ class Filter extends GainNode {
     render(parentDiv) {
         const childDiv = document.createElement("div");
         childDiv.innerHTML = `
-            <div class="control-group">
-                <label>
-                    <span>-------------------${this.name}-------------------</span>
+            <div class="synth-node">
+                <label class="header">
+                    ${this.name}
                 </label>
-                <div class="control-group">
-                    <label for="${this.name}-filterType">Filter type: <span id="${this.name}-filterTypeValue">${this.filter.type}</span></label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-filterType">Filter type: </label>
                     <select id="${this.name}-filterType">
                         <option value="lowpass" ${this.filter.type==='lowpass' ? "selected": ""}>Lowpass</option>
                         <option value="highpass" ${this.filter.type==='highpass' ? "selected": ""}>Highpass</option>
+                        <span id="${this.name}-filterTypeValue">${this.filter.type}</span>
                     </select>
                 </div>
 
-                <div class="control-group">
-                    <label for="${this.name}-cutoffFrequency">Cutoff Frequency: <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>Hz</label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-cutoffFrequency">Cutoff Frequency: </label>
                     <input type="range" id="${this.name}-cutoffFrequency" min="0" max="5000" value="${this.filter.frequency.value}" step="1">
+                    <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>Hz
                 </div>
                 
-                <div class="control-group">
-                    <label for="${this.name}-Q">Quality Factor: <span id="${this.name}-QValue">${this.filter.Q.value}</span></label>
+                <div class="synth-node-control-group">
+                    <label for="${this.name}-Q">Quality Factor: </label>
                     <input type="range" id="${this.name}-Q" min="1" max="10" value="${this.filter.Q.value}" step="1">
+                    <span id="${this.name}-QValue">${this.filter.Q.value}</span>
                 </div>
                 
                 <div class="control-group">
@@ -341,7 +351,7 @@ class Filter extends GainNode {
                     <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
                 </div>
 
-                <div class="control-group">
+                <div class="synth-node-control-group">
                     <label for="${this.name}-mute">Mute:</label>
                     <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
                 </div>
