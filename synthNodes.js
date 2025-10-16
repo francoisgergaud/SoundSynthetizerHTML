@@ -335,9 +335,9 @@ class Filter extends GainNode {
                 </div>
 
                 <div class="synth-node-control-group">
-                    <label for="${this.name}-cutoffFrequency">Cutoff Frequency: </label>
+                    <label for="${this.name}-cutoffFrequency">Cutoff Frequency (Hz): </label>
                     <input type="range" id="${this.name}-cutoffFrequency" min="0" max="5000" value="${this.filter.frequency.value}" step="1">
-                    <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>Hz
+                    <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>
                 </div>
                 
                 <div class="synth-node-control-group">
