@@ -60,6 +60,17 @@ class BaseOscillator extends GainNode {
         }
     }
 
+    getOutputs(){
+        const outputs = super.getOutputs();
+
+        outputs["oscillator"] = {
+            "node": this.oscillator,
+            "index": 0,
+        }
+
+        return outputs;
+    }
+
     setType(value) {
         this.oscillator.type=value;
     }
