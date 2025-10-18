@@ -10,3 +10,7 @@
 6. UI pour configurer les paramètres des nodes
 7. Custom node : Phaser, Chorus, Octaver, etc.
 
+
+## how to use
+to start a local server for development:
+`npm run dev`

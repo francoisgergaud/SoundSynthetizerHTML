@@ -1,19 +1,9 @@
-const nodeConnectorEl = document.getElementById("nodeConnector");
-
 class Graph {
+
+    nodes: { string: SynthBaseNode }
     
     constructor(){
-        this.nodes={};
-        this.links={};
-    }
-
-    addNode(synthNode){
-        this.nodes[synthNode.name] = synthNode;
-        const sourceSelectElement = document.getElementById("source");
-        this.setOptionsForSelect(sourceSelectElement, this.getAllOutputs());
-        const destinationSelectElement = document.getElementById("destination");
-        this.setOptionsForSelect(destinationSelectElement, this.getAllInputs());
-        nodeConnectorEl.style.display = "block";
+        this.nodes = {}
     }
 
     getAllInputs(){
@@ -42,14 +32,6 @@ class Graph {
         }
 
         return result;
-    }
-
-    setOptionsForSelect(selectElement, optionsMapping){
-        selectElement.innerHTML = "";
-        for(const optionId in optionsMapping) {
-            const newOption = new Option(optionId, optionId);
-            selectElement.add(newOption);
-        }
     }
 
     addLink(sourceId, destinationId){

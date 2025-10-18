@@ -1,0 +1,75 @@
+<script setup lang="ts">
+    import { ref } from 'vue'
+    import {VCONode} from './synthNodes'
+
+    const props = defineProps<{
+        node: VCONode,
+    }>()
+
+    let frequencyParameter = ref<string>(props.node.getFrequency().toString())
+    let waveFormParameter = ref<OscillatorType>(props.node.getType())
+    let gainParameter = ref<string>((props.node.getGain() * 100 ).toString())
+    let muteParameter = ref<boolean>(props.node.isMute())
+
+
+    function changeFrequency(value: string) {
+        frequencyParameter.value = value
+        props.node.setFrequency(+frequencyParameter.value)
+    }
+
+    function changeWaveForm(value: string) {
+        waveFormParameter.value = value as OscillatorType
+        props.node.setType(waveFormParameter.value)
+    }
+
+    function changeGain(value: string) {
+        gainParameter.value = value
+        props.node.setGain(+gainParameter.value / 100);
+    }
+
+    function changeMute(value: boolean) {
+        muteParameter.value = value
+        if(muteParameter.value) {
+            props.node.mute()
+        } else {
+            props.node.unmute()
+        }
+    }
+
+</script>
+
+<template>
+    <div class="synth-node">
+        <div>
+            <label class="header">
+                {{props.node.name}}
+            </label>
+            <div class="synth-node-control-group">
+                <label for="{{props.node.name}}-frequency">Frequency (Hz): </label>
+                <input type="range" id="{{props.node.name}}-frequency" min="20" max="5000" :value="frequencyParameter" step="1" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
+                <span id="{{props.node.name}}-freqValue">{{frequencyParameter}}</span>
+            </div>
+
+            <div class="synth-node-control-group">
+                <label for="{{props.node.name}}-waveform">Waveform Type:</label>
+                <select id="{{props.node.name}}-waveform" @change="(event) => changeWaveForm((event.currentTarget as HTMLSelectElement).value)">
+                    <option value="sine" :selected="waveFormParameter === 'sine' ">Sine</option>
+                    <option value="square" :selected="waveFormParameter === 'square' ">Square</option>
+                    <option value="sawtooth" :selected="waveFormParameter === 'sawtooth' ">Sawtooth</option>
+                    <option value="triangle" :selected="waveFormParameter === 'triangle' ">Triangle</option>
+                </select>
+            </div>
+
+            <div class="synth-node-control-group">
+                <label for="{{props.node.name}}-gain">Gain: </label>
+                <input type="range" id="{{props.node.name}}-gain" min="0" max="100" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
+                <span id="{{props.node.name}}-gainValue">{{gainParameter}}%</span>
+            </div>
+
+            <div class="synth-node-control-group">
+                <label for="{{props.node.name}}-mute">Mute:</label>
+                <input type="checkbox" id="{{props.node.name}}-mute" :value="muteParameter" @input="(event) => changeMute((event.currentTarget as HTMLInputElement).checked)">
+            </div>
+        </div>
+    </div>
+</template>

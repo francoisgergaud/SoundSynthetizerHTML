@@ -3,51 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oscillator Sound</title>
+    <title>Sound Synthetizer</title>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
-<div class="control-group">
-    <select id="nodeType">
-        <option value="vco">Sound Oscillator</option>
-        <option value="lfo">Low Freq. Oscillator</option>
-        <option value="delay">Delay</option>
-        <option value="filter">Filter</option>
-        <option value="music">Music Sequence</option>
-    </select>
-    &nbsp;
-    <input type="text" id="nodeName" placeholder="name"/>
-    
-    &nbsp;
-    <button id="addNode">Add</button>
-</div>
-
-
-
-<div id="nodeConnector" class="control-group">
-    <label for="source">
-        from
-    </label>
-    &nbsp;
-    <select id="source">
-    </select>
-    &nbsp;
-    <label for="destination">
-        to
-    </label>
-    &nbsp;
-    <select id="destination">
-    </select>
-    &nbsp;
-    <button id="addLink">Connect nodes</button>
-</div>
-<div id="links">
-    <h2>Routing</h2>
-</div>
-<div id="nodes"></div>
-
-    <script src="synthNodes.js"></script>
-    <script src="graph.js"></script>
-    <script src="index.js"></script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
