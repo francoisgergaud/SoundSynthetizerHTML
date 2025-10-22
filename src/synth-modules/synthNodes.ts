@@ -181,7 +181,7 @@ export class Delay extends Gain {
         return inputs
     }
 
-    getOutputs(){
+    getOutputs():  { [outputName: string]: { node: AudioNode; index: number; }; }{
         const outputs = super.getOutputs();
 
         outputs["oscillator"] = {
@@ -262,220 +262,137 @@ export class Filter extends Gain {
     setFilterDetune(value: number) {
         this.filter.gain.setValueAtTime(value, this.audioContext.currentTime);
     }
-
-    // render(parentDiv) {
-    //     const childDiv = document.createElement("div");
-    //     childDiv.innerHTML = `
-    //         <div class="synth-node">
-    //             <div>
-    //                 <label class="header">
-    //                     ${this.name}
-    //                 </label>
-    //                 <div class="synth-node-control-group">
-    //                     <label for="${this.name}-filterType">Filter type: </label>
-    //                     <select id="${this.name}-filterType">
-    //                         <option value="lowpass" ${this.filter.type==='lowpass' ? "selected": ""}>Lowpass</option>
-    //                         <option value="highpass" ${this.filter.type==='highpass' ? "selected": ""}>Highpass</option>
-    //                         <span id="${this.name}-filterTypeValue">${this.filter.type}</span>
-    //                     </select>
-    //                 </div>
-
-    //                 <div class="synth-node-control-group">
-    //                     <label for="${this.name}-cutoffFrequency">Cutoff Frequency: </label>
-    //                     <input type="range" id="${this.name}-cutoffFrequency" min="0" max="5000" value="${this.filter.frequency.value}" step="1">
-    //                     <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>Hz
-    //                 </div>
-                    
-    //                 <div class="synth-node-control-group">
-    //                     <label for="${this.name}-Q">Quality Factor: </label>
-    //                     <input type="range" id="${this.name}-Q" min="1" max="10" value="${this.filter.Q.value}" step="1">
-    //                     <span id="${this.name}-QValue">${this.filter.Q.value}</span>
-    //                 </div>
-                    
-    //                 <div class="synth-node-control-group">
-    //                     <label for="${this.name}-volume">Volume: <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}</span>%</label>
-    //                     <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
-    //                 </div>
-
-    //                 <div class="synth-node-control-group">
-    //                     <label for="${this.name}-mute">Mute:</label>
-    //                     <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     `;
-
-    //     parentDiv.appendChild(childDiv);
-
-    //     // Update displayed values
-    //     document.getElementById(`${this.name}-filterType`).addEventListener('change', (event) => {
-    //         this.setFilterType(event.currentTarget.value);
-    //     });
-
-    //     document.getElementById(`${this.name}-cutoffFrequency`).addEventListener('input', (event) => {
-    //         document.getElementById(`${this.name}-cutoffFrequencyValue`).textContent = event.currentTarget.value;
-    //         this.setCutoffFrequency(event.currentTarget.value);
-    //     });
-
-    //     document.getElementById(`${this.name}-Q`).addEventListener('input', (event) => {
-    //         document.getElementById(`${this.name}-QValue`).textContent = event.currentTarget.value;
-    //         this.setQ(event.currentTarget.value);
-    //     });
-
-    //     document.getElementById(`${this.name}-volume`).addEventListener('input', (event) => {
-    //         document.getElementById(`${this.name}-volumeValue`).textContent = event.currentTarget.value;
-    //         this.setGain(event.currentTarget.value/100);
-    //     });
-
-    //     document.getElementById(`${this.name}-mute`).addEventListener('change', (event) => {
-    //         if(event.currentTarget.checked){
-    //             this.mute();
-    //         } else {
-    //             this.unmute();
-    //         }
-    //     });
-    // }
 }
 
-// class Sequencer extends BaseNode{
-//     constructor(name, audioContext) {
-//         super();
-//         this.name = name;
-//         this.context = audioContext;
-//         this.currentStep = 0;
-//         this.intervalId = null;
-
-//         this.SCHEDULER_INTERVAL = 25; // How often (ms) the scheduler looks ahead
-//         this.LOOKAHEAD_TIME = 0.1;    // How far (s) to schedule notes into the future
-//         this.nextNoteTime = 0.0;      // The precise context.currentTime when the next note should play
-//         this.noteLength = 0.0;        // The length of a single note in seconds
-
-//         this.outputNode = audioContext.createConstantSource();
-//         this.outputNode.offset.value = 0; // Initialize to zero frequency
-//         this.outputNode.start(0);
-//     }
-
-//     getMelody() {
-//         return [];
-//     }
-
-//     scheduler() {
-//         // While the next note is within the lookahead buffer...
-//         while (this.nextNoteTime < this.context.currentTime + this.LOOKAHEAD_TIME) {
-
-//             // Schedule the note change precisely at nextNoteTime
-//             this._scheduleNoteChange(this.nextNoteTime);
-
-//             // Advance the nextNoteTime for the following note
-//             this.nextNoteTime += this.noteLength;
-
-//             // Advance the melody step index
-//             this.currentStep = (this.currentStep + 1) % this.getMelody().length;
-//         }
-//     }
-
-//     _scheduleNoteChange(time) {
-//         const cents = this.getMelody()[this.currentStep];
-//         this.outputNode.offset.setValueAtTime(cents, time);
-//     }
-
-//     start(bpm, noteDuration = 4) {
-//         if (this.intervalId) this.stop();
-
-//         // Calculate note length in seconds
-//         const beatDuration = 60 / bpm;
-//         this.noteLength = beatDuration * (4 / noteDuration);
-
-//         // Initialize the next note time to the current context time
-//         this.nextNoteTime = this.context.currentTime;
-
-//         // Start the lookahead scheduler (running every 25ms)
-//         this.intervalId = setInterval(() => {
-//             this.scheduler();
-//         }, this.SCHEDULER_INTERVAL);
-
-//         // Run scheduler once immediately to schedule the very first note
-//         this.scheduler();
-//     }
-
-//     stop() {
-//         if (this.intervalId) {
-//             clearInterval(this.intervalId);
-//             this.intervalId = null;
-//             this.currentStep = 0;
-//             // Reset detune back to 0 when stopping
-//             this.outputNode.offset.setValueAtTime(0, this.context.currentTime);
-//             console.log("Melody stopped.");
-//         }
-//     }
-// }
-
-
-// class Melody extends Sequencer{
-
-//     getMelody() {
-//         return [
-//             0,    // A3
-//             1200, // A4 (+1 octave)
-//             1000, // G4 (+10 semitones)
-//             700,  // E4 (+7 semitones)
-//             1000, // G4
-//             700,  // E4
-//             500,  // D4 (+5 semitones)
-//             300   // C4 (+3 semitones)
-//         ];
-//     }
-// }
-
-// class Bass extends Sequencer{
-//     getMelody() {
-//         return [
-//             0,    // A
-//             200,  // B
-//             300,  // C
-//             500,  // D
-//         ];
-//     }
-// }
-
-// class MusicSequence extends BaseNode {
+abstract class FrequencySequencer {
     
-//     constructor(name, audioContext) {
-//         super();
-//         this.name = name;
+    name: string
+    context: AudioContext
+    currentStep: number // current detune index
+    intervalId: number | null // id of the timer use to sequence the frequencies
+    nextNoteTime: number // The precise context.currentTime when the next note should play
+    noteDurationMs: number // The length of a single note in milliseconds
+    oscillator: OscillatorNode // the oscillator used to output the frequency
 
-//         this.melody = new Melody(`${name}/melody`, audioContext);
-//         this.bass = new Bass(`${name}/bass`, audioContext);
+    constructor(name: string, audioContext: AudioContext) {
+        this.name = name
+        this.context = audioContext
+        this.currentStep = 0
+        this.intervalId = null
+        this.nextNoteTime = 0.0
+        this.noteDurationMs = 0.0
 
-//         this.start(90);
-//     }
+        this.oscillator = audioContext.createOscillator()
+        this.oscillator.frequency.value = 440
+        this.oscillator.start()
+    }
 
-//     getOutputs() {
-//         return {
-//             "melody": {
-//                 "node": this.melody.outputNode,
-//                 "index": 0,
-//             },
-//             "bass": {
-//                 "node": this.bass.outputNode,
-//                 "index": 0,
-//             },
-//         }
-//     }
+    abstract getMelody(): number[]
 
-//     getInputs() {
-//         return {}
-//     }
+    scheduler() {
+        this.currentStep = (this.currentStep + 1) % this.getMelody().length;
+        this.nextNoteTime += this.noteDurationMs;
+        this._scheduleNoteChange(this.nextNoteTime)
+        this.intervalId = setTimeout(this.scheduler.bind(this), this.noteDurationMs)
+    }
 
-//     start(bpm) {
-//             this.melody.start(bpm, 16);
-//             this.bass.start(bpm, 2);
-//     }
+    _scheduleNoteChange(scheduleTime: number) {
+        const noteInCents = this.getMelody()[this.currentStep];
+        //input qre detune in cents, hence the use of the oscillator's detune parameter
+        this.oscillator.detune.setValueAtTime(noteInCents!, scheduleTime/1000);
+    }
 
-//     stop(bpm) {
-//             this.melody.stop();
-//             this.bass.stop();
-//     }
+    start(bpm: number, noteDuration = 4) {
+        if (this.intervalId) this.stop();
+        // Calculate note length in seconds
+        const beatDuration = 60 / bpm;
+        this.noteDurationMs = beatDuration * (4 / noteDuration) *1000
+        // Initialize the next note time to the current context time
+        this.nextNoteTime = this.context.currentTime
+        // Run scheduler once immediately to schedule the very first note
+        this._scheduleNoteChange(0)
+        // Trigger the scheduler, which trigger itself infinitly
+        this.scheduler()
+    }
 
-//     render() {}
-// }
+    stop() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+            this.currentStep = 0;
+            console.log("Melody stopped.");
+        }
+    }
+}
+
+
+class Melody extends FrequencySequencer{
+
+    getMelody(): number[] {
+        return [
+            0,    // A3
+            1200, // A4 (+1 octave)
+            1000, // G4 (+10 semitones)
+            700,  // E4 (+7 semitones)
+            1000, // G4
+            700,  // E4
+            500,  // D4 (+5 semitones)
+            300   // C4 (+3 semitones)
+        ];
+    }
+}
+
+class Bass extends FrequencySequencer{
+    getMelody(): number[] {
+        return [
+            0,    // A
+            200,  // B
+            300,  // C
+            500,  // D
+        ];
+    }
+}
+
+export class MusicSequence extends SynthBaseNode {
+
+    name: string
+    melody: Melody
+    bass: Melody
+    
+    constructor(name: string, audioContext: AudioContext) {
+        super(audioContext);
+        this.name = name;
+
+        this.melody = new Melody(`${name}/melody`, audioContext);
+        this.bass = new Bass(`${name}/bass`, audioContext);
+
+        this.start(90);
+    }
+
+    getOutputs():  { [outputName: string]: { node: AudioNode; index: number; }; } {
+        return {
+            "melody": {
+                "node": this.melody.oscillator,
+                "index": 0,
+            },
+            "bass": {
+                "node": this.bass.oscillator,
+                "index": 0,
+            },
+        }
+    }
+
+    getInputs() {
+        return {}
+    }
+
+    start(bpm: number) {
+            this.melody.start(bpm, 16);
+            this.bass.start(bpm, 2);
+    }
+
+    stop() {
+            this.melody.stop();
+            this.bass.stop();
+    }
+}

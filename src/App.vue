@@ -1,12 +1,13 @@
 
 
 <script setup lang="ts">
-  import { ref, computed, type ComputedRef } from 'vue'
-  import VCOComponent from './synth-modules/vco.vue'
-  import LFOComponent from './synth-modules/lfo.vue'
-  import DelayComponent from './synth-modules/delay.vue'
-  import FilterComponent from './synth-modules/filter.vue'
-  import {SynthBaseNode, Speaker, VCO, LFO, Delay, Filter} from './synth-modules/synthNodes'
+  import { ref, computed, type ComputedRef } from "vue"
+  import VCOComponent from "./synth-modules/vco.vue"
+  import LFOComponent from "./synth-modules/lfo.vue"
+  import DelayComponent from "./synth-modules/delay.vue"
+  import FilterComponent from "./synth-modules/filter.vue"
+  import MusicSequencerComponent from "./synth-modules/musicSequencer.vue"
+  import {SynthBaseNode, Speaker, VCO, LFO, Delay, Filter, MusicSequence} from "./synth-modules/synthNodes"
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -34,6 +35,10 @@
       case "filter":
         const filter = new Filter(nodeName.value, audioContext)
         nodes.value[nodeName.value] = {"node": filter, "type" : nodeType.value}
+        break
+      case "music":
+        const musicSequence = new MusicSequence(nodeName.value, audioContext)
+        nodes.value[nodeName.value] = {"node": musicSequence, "type" : nodeType.value}
         break
       default:
         console.error(`addNode: unknown node-type ${nodeType.value}`)
@@ -138,6 +143,7 @@
         <LFOComponent v-if="nodeData.type === 'lfo' " :node="nodeData.node as LFO"></LFOComponent>
         <DelayComponent v-if="nodeData.type === 'delay' " :node="nodeData.node as Delay"></DelayComponent>
         <FilterComponent v-if="nodeData.type === 'filter' " :node="nodeData.node as Filter"></FilterComponent>
+        <MusicSequencerComponent v-if="nodeData.type === 'music' " :node="nodeData.node as Filter"></MusicSequencerComponent>
     </div>
   </div>
  
