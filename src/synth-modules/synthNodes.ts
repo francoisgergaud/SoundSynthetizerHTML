@@ -34,7 +34,7 @@ export abstract class SynthBaseNode {
     }
 }
 
-abstract class SynthGainNode extends SynthBaseNode{
+abstract class Gain extends SynthBaseNode{
     name: string
     gain: GainNode
     muter: GainNode
@@ -76,6 +76,12 @@ abstract class SynthGainNode extends SynthBaseNode{
         this.isMuted = true;
     }
 
+    getInputs() : {[inputName:string]: AudioParam | AudioNode}{
+        return {
+            "gain": this.gain.gain,
+        }
+    }
+
     getOutputs() : {[outputName:string]: {node: AudioNode, index: number }}{
         return {
             "output": {
@@ -86,7 +92,7 @@ abstract class SynthGainNode extends SynthBaseNode{
     }
 }
 
-abstract class BaseOscillator extends SynthGainNode {
+abstract class BaseOscillator extends Gain {
     oscillator: OscillatorNode
 
     constructor(name: string, audioContext: AudioContext, frequency: number, gain: number) {
@@ -105,11 +111,10 @@ abstract class BaseOscillator extends SynthGainNode {
         this.oscillator.frequency.setValueAtTime(value, this.audioContext.currentTime)
     }
 
-    getInputs() : {[inputName:string]: AudioParam}{
-        return {
-            "frequency": this.oscillator.frequency,
-            "gain": this.gain.gain,
-        }
+    getInputs() : {[inputName:string]: AudioParam | AudioNode}{
+        const inputs = super.getInputs()
+        inputs["frequency"] = this.oscillator.frequency
+        return inputs
     }
 
     getType() : OscillatorType {
@@ -121,35 +126,25 @@ abstract class BaseOscillator extends SynthGainNode {
     }
 }
 
-export class LFONode extends BaseOscillator{
+export class LFO extends BaseOscillator{
     
     constructor(name: string, audioContext: AudioContext) {
         super(name, audioContext, 1, 0);
     }
 }
 
-export class VCONode extends BaseOscillator{
+export class VCO extends BaseOscillator{
 
     constructor(name: string, audioContext: AudioContext) {
         super(name, audioContext, 440, 1);
     }
 
     getInputs(){
-        let result = super.getInputs();
-        result["detune"] = this.oscillator.detune;
-        return result;
+        const inputs = super.getInputs();
+        inputs["detune"] = this.oscillator.detune;
+        return inputs;
     }
 
-    getOutputs(){
-        const outputs = super.getOutputs();
-
-        outputs["oscillator"] = {
-            "node": this.oscillator,
-            "index": 0,
-        }
-
-        return outputs;
-    }
 }
 
 export class Speaker extends SynthBaseNode {
@@ -168,182 +163,179 @@ export class Speaker extends SynthBaseNode {
 
 }
 
-// class Delay extends GainNode {
-//     constructor(name, audioContext){
-//         super(name, audioContext);
-//         this.delay = audioContext.createDelay();
-//         this.delay.delayTime.value = 0.25;
-//         this.delay.connect(this.gain);
-//     }
+export class Delay extends Gain {
 
-//     getInputs(){
-//         return {
-//             "input": this.delay,
-//             "delayTime": this.delay.delayTime,
-//             "gain": this.gain.gain
-//         }
-//     }
+    delay: DelayNode
 
-//     setDelayTime(seconds) {
-//         this.delay.delayTime.setValueAtTime(seconds, this.audioContext.currentTime);
-//     }
+    constructor(name: string, audioContext: AudioContext){
+        super(name, audioContext,0);
+        this.delay = audioContext.createDelay();
+        this.delay.delayTime.value = 0.25;
+        this.delay.connect(this.gain);
+    }
 
-//     render(parentDiv) {
-//         const childDiv = document.createElement("div");
-//         childDiv.innerHTML = `
-//             <div class="synth-node">
-//                 <div>
-//                     <label class="header">
-//                         ${this.name}
-//                     </label>
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-delayTime">Delay (s): </label>
-//                         <input type="range" id="${this.name}-delayTime" min="0" max="1" value="${this.delay.delayTime.value}" step="0.05">
-//                         <span id="${this.name}-delayTimeValue">${this.delay.delayTime.value}</span>
-//                     </div>
+    getInputs(): {[inputName:string]: AudioParam|AudioNode} {
+        const inputs = super.getInputs();
+        inputs["input"] = this.delay
+        inputs["delayTime"] = this.delay.delayTime
+        return inputs
+    }
 
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-volume">Volume: </label>
-//                         <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
-//                         <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}%</span>
-//                     </div>
+    getOutputs(){
+        const outputs = super.getOutputs();
 
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-mute">Mute:</label>
-//                         <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
-//                     </div>
-//                 </div>
-//             </div>
-//         `;
+        outputs["oscillator"] = {
+            "node": this.delay,
+            "index": 0,
+        }
 
-//         parentDiv.appendChild(childDiv);
+        return outputs;
+    }
 
-//         // Update displayed values
-//         document.getElementById(`${this.name}-delayTime`).addEventListener('input', (event) => {
-//             document.getElementById(`${this.name}-delayTimeValue`).textContent = event.currentTarget.value;
-//             this.setDelayTime(event.currentTarget.value);
-//         });
+    getDelayTime(): number {
+        return this.delay.delayTime.value
+    }
 
-//         document.getElementById(`${this.name}-volume`).addEventListener('input', (event) => {
-//             document.getElementById(`${this.name}-volumeValue`).textContent = event.currentTarget.value;
-//             this.setGain(event.currentTarget.value / 100);
-//         });
+    setDelayTime(seconds: number) {
+        this.delay.delayTime.setValueAtTime(seconds, this.audioContext.currentTime);
+    }
+}
 
-//         document.getElementById(`${this.name}-mute`).addEventListener('change', (event) => {
-//             if(event.currentTarget.checked){
-//                 this.mute();
-//             } else {
-//                 this.unmute();
-//             }
-//         });
-//     }
-// }
+export class Filter extends Gain {
 
-// class Filter extends GainNode {
-//         constructor(name, audioContext){
-//         super(name, audioContext);
-//         this.filter = audioContext.createBiquadFilter();
-//         this.filter.type = "lowpass";
-//         this.filter.frequency.value = 440;
-//         this.filter.Q.value = 1;
-//         this.filter.connect(this.gain);
-//     }
+    filter: BiquadFilterNode
+        
+    constructor(name: string, audioContext: AudioContext){
+        super(name, audioContext, 1);
+        this.filter = audioContext.createBiquadFilter();
+        this.filter.frequency.value = 440;
+        this.filter.Q.value = 1;
+        this.filter.connect(this.gain);
+    }
 
-//     getInputs(){
-//         return {
-//             "input": this.filter,
-//             "type": this.filter.type,
-//             "cutoffFrequency": this.filter.frequency,
-//             "Q": this.filter.Q,
-//             "gain": this.gain.gain
-//         }
-//     }
+    getInputs(){
+        return {
+            "input": this.filter,
+            "cutoffFrequency": this.filter.frequency,
+            "Q": this.filter.Q,
+            "filterGain": this.filter.gain,
+            "cutoffFrequencyDetune": this.filter.detune
+        }
+    }
 
-//     setFilterType(value) {
-//         this.filter.type = value;
-//     }
+    getFilterType(): BiquadFilterType {
+        return this.filter.type;
+    }
 
-//     setCutoffFrequency(value) {
-//         this.filter.frequency.setValueAtTime(value, this.audioContext.currentTime);
-//     }
+    setFilterType(value: BiquadFilterType) {
+        this.filter.type = value;
+    }
 
-//     setQ(value) {
-//         this.filter.Q.setValueAtTime(value, this.audioContext.currentTime);
-//     }
+    getCutoffFrequency(): number {
+        return this.filter.frequency.value
+    }
 
-//     render(parentDiv) {
-//         const childDiv = document.createElement("div");
-//         childDiv.innerHTML = `
-//             <div class="synth-node">
-//                 <div>
-//                     <label class="header">
-//                         ${this.name}
-//                     </label>
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-filterType">Filter type: </label>
-//                         <select id="${this.name}-filterType">
-//                             <option value="lowpass" ${this.filter.type==='lowpass' ? "selected": ""}>Lowpass</option>
-//                             <option value="highpass" ${this.filter.type==='highpass' ? "selected": ""}>Highpass</option>
-//                             <span id="${this.name}-filterTypeValue">${this.filter.type}</span>
-//                         </select>
-//                     </div>
+    setCutoffFrequency(value: number) {
+        this.filter.frequency.setValueAtTime(value, this.audioContext.currentTime);
+    }
 
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-cutoffFrequency">Cutoff Frequency: </label>
-//                         <input type="range" id="${this.name}-cutoffFrequency" min="0" max="5000" value="${this.filter.frequency.value}" step="1">
-//                         <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>Hz
-//                     </div>
+    getQ(): number {
+        return this.filter.Q.value
+    }
+
+    setQ(value: number) {
+        this.filter.Q.setValueAtTime(value, this.audioContext.currentTime);
+    }
+
+    getFilterGain(): number {
+        return this.filter.gain.value
+    }
+
+    setFilterGain(value: number) {
+        this.filter.gain.setValueAtTime(value, this.audioContext.currentTime);
+    }
+
+    getFilterDetune(): number {
+        return this.filter.gain.value
+    }
+
+    setFilterDetune(value: number) {
+        this.filter.gain.setValueAtTime(value, this.audioContext.currentTime);
+    }
+
+    // render(parentDiv) {
+    //     const childDiv = document.createElement("div");
+    //     childDiv.innerHTML = `
+    //         <div class="synth-node">
+    //             <div>
+    //                 <label class="header">
+    //                     ${this.name}
+    //                 </label>
+    //                 <div class="synth-node-control-group">
+    //                     <label for="${this.name}-filterType">Filter type: </label>
+    //                     <select id="${this.name}-filterType">
+    //                         <option value="lowpass" ${this.filter.type==='lowpass' ? "selected": ""}>Lowpass</option>
+    //                         <option value="highpass" ${this.filter.type==='highpass' ? "selected": ""}>Highpass</option>
+    //                         <span id="${this.name}-filterTypeValue">${this.filter.type}</span>
+    //                     </select>
+    //                 </div>
+
+    //                 <div class="synth-node-control-group">
+    //                     <label for="${this.name}-cutoffFrequency">Cutoff Frequency: </label>
+    //                     <input type="range" id="${this.name}-cutoffFrequency" min="0" max="5000" value="${this.filter.frequency.value}" step="1">
+    //                     <span id="${this.name}-cutoffFrequencyValue">${this.filter.frequency.value}</span>Hz
+    //                 </div>
                     
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-Q">Quality Factor: </label>
-//                         <input type="range" id="${this.name}-Q" min="1" max="10" value="${this.filter.Q.value}" step="1">
-//                         <span id="${this.name}-QValue">${this.filter.Q.value}</span>
-//                     </div>
+    //                 <div class="synth-node-control-group">
+    //                     <label for="${this.name}-Q">Quality Factor: </label>
+    //                     <input type="range" id="${this.name}-Q" min="1" max="10" value="${this.filter.Q.value}" step="1">
+    //                     <span id="${this.name}-QValue">${this.filter.Q.value}</span>
+    //                 </div>
                     
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-volume">Volume: <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}</span>%</label>
-//                         <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
-//                     </div>
+    //                 <div class="synth-node-control-group">
+    //                     <label for="${this.name}-volume">Volume: <span id="${this.name}-volumeValue">${this.gain.gain.value * 100}</span>%</label>
+    //                     <input type="range" id="${this.name}-volume" min="0" max="100" value="${this.gain.gain.value * 100}" step="1">
+    //                 </div>
 
-//                     <div class="synth-node-control-group">
-//                         <label for="${this.name}-mute">Mute:</label>
-//                         <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
-//                     </div>
-//                 </div>
-//             </div>
-//         `;
+    //                 <div class="synth-node-control-group">
+    //                     <label for="${this.name}-mute">Mute:</label>
+    //                     <input type="checkbox" id="${this.name}-mute" value="${this.isMuted}">
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     `;
 
-//         parentDiv.appendChild(childDiv);
+    //     parentDiv.appendChild(childDiv);
 
-//         // Update displayed values
-//         document.getElementById(`${this.name}-filterType`).addEventListener('change', (event) => {
-//             this.setFilterType(event.currentTarget.value);
-//         });
+    //     // Update displayed values
+    //     document.getElementById(`${this.name}-filterType`).addEventListener('change', (event) => {
+    //         this.setFilterType(event.currentTarget.value);
+    //     });
 
-//         document.getElementById(`${this.name}-cutoffFrequency`).addEventListener('input', (event) => {
-//             document.getElementById(`${this.name}-cutoffFrequencyValue`).textContent = event.currentTarget.value;
-//             this.setCutoffFrequency(event.currentTarget.value);
-//         });
+    //     document.getElementById(`${this.name}-cutoffFrequency`).addEventListener('input', (event) => {
+    //         document.getElementById(`${this.name}-cutoffFrequencyValue`).textContent = event.currentTarget.value;
+    //         this.setCutoffFrequency(event.currentTarget.value);
+    //     });
 
-//         document.getElementById(`${this.name}-Q`).addEventListener('input', (event) => {
-//             document.getElementById(`${this.name}-QValue`).textContent = event.currentTarget.value;
-//             this.setQ(event.currentTarget.value);
-//         });
+    //     document.getElementById(`${this.name}-Q`).addEventListener('input', (event) => {
+    //         document.getElementById(`${this.name}-QValue`).textContent = event.currentTarget.value;
+    //         this.setQ(event.currentTarget.value);
+    //     });
 
-//         document.getElementById(`${this.name}-volume`).addEventListener('input', (event) => {
-//             document.getElementById(`${this.name}-volumeValue`).textContent = event.currentTarget.value;
-//             this.setGain(event.currentTarget.value/100);
-//         });
+    //     document.getElementById(`${this.name}-volume`).addEventListener('input', (event) => {
+    //         document.getElementById(`${this.name}-volumeValue`).textContent = event.currentTarget.value;
+    //         this.setGain(event.currentTarget.value/100);
+    //     });
 
-//         document.getElementById(`${this.name}-mute`).addEventListener('change', (event) => {
-//             if(event.currentTarget.checked){
-//                 this.mute();
-//             } else {
-//                 this.unmute();
-//             }
-//         });
-//     }
-// }
+    //     document.getElementById(`${this.name}-mute`).addEventListener('change', (event) => {
+    //         if(event.currentTarget.checked){
+    //             this.mute();
+    //         } else {
+    //             this.unmute();
+    //         }
+    //     });
+    // }
+}
 
 // class Sequencer extends BaseNode{
 //     constructor(name, audioContext) {

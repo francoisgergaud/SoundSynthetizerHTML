@@ -2,9 +2,11 @@
 
 <script setup lang="ts">
   import { ref, computed, type ComputedRef } from 'vue'
-  import VCO from './synth-modules/vco.vue'
-  import LFO from './synth-modules/lfo.vue'
-  import {SynthBaseNode, Speaker, VCONode, LFONode} from './synth-modules/synthNodes'
+  import VCOComponent from './synth-modules/vco.vue'
+  import LFOComponent from './synth-modules/lfo.vue'
+  import DelayComponent from './synth-modules/delay.vue'
+  import FilterComponent from './synth-modules/filter.vue'
+  import {SynthBaseNode, Speaker, VCO, LFO, Delay, Filter} from './synth-modules/synthNodes'
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -18,12 +20,20 @@
   function addNode() {
     switch(nodeType.value) {
       case "vco":
-        const vco = new VCONode(nodeName.value, audioContext)
+        const vco = new VCO(nodeName.value, audioContext)
         nodes.value[nodeName.value] = {"node": vco, "type" : nodeType.value}
         break
       case "lfo":
-        const lfo = new LFONode(nodeName.value, audioContext)
+        const lfo = new LFO(nodeName.value, audioContext)
         nodes.value[nodeName.value] = {"node": lfo, "type" : nodeType.value}
+        break
+      case "delay":
+        const delay = new Delay(nodeName.value, audioContext)
+        nodes.value[nodeName.value] = {"node": delay, "type" : nodeType.value}
+        break
+      case "filter":
+        const filter = new Filter(nodeName.value, audioContext)
+        nodes.value[nodeName.value] = {"node": filter, "type" : nodeType.value}
         break
       default:
         console.error(`addNode: unknown node-type ${nodeType.value}`)
@@ -124,8 +134,10 @@
 
   <div id="nodes">
     <div v-for="(nodeData,nodeName) in nodes" v-bind:key="nodeName">
-        <VCO v-if="nodeData.type === 'vco' " :node="nodeData.node as VCONode"></VCO>
-        <LFO v-if="nodeData.type === 'lfo' " :node="nodeData.node as LFONode"></LFO>
+        <VCOComponent v-if="nodeData.type === 'vco' " :node="nodeData.node as VCO"></VCOComponent>
+        <LFOComponent v-if="nodeData.type === 'lfo' " :node="nodeData.node as LFO"></LFOComponent>
+        <DelayComponent v-if="nodeData.type === 'delay' " :node="nodeData.node as Delay"></DelayComponent>
+        <FilterComponent v-if="nodeData.type === 'filter' " :node="nodeData.node as Filter"></FilterComponent>
     </div>
   </div>
  

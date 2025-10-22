@@ -1,9 +1,9 @@
 <script setup lang="ts">
     import { ref } from 'vue'
-    import { LFONode } from './synthNodes'
+    import { LFO } from './synthNodes'
 
     const props = defineProps<{
-        node: LFONode,
+        node: LFO,
     }>()
 
     let frequencyParameter = ref<string>(props.node.getFrequency().toString())
