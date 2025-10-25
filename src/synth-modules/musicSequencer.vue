@@ -1,6 +1,6 @@
 <script setup lang="ts">
-    import { ref } from 'vue'
     import { MusicSequence } from './synthNodes'
+    import BaseNodeComponent from './base-node-component.vue';
 
     const props = defineProps<{
         node: MusicSequence,
@@ -9,11 +9,9 @@
 </script>
 
 <template>
-    <div class="synth-node">
-        <div>
-            <label class="header">
-                {{props.node.name}}
-            </label>
+   <BaseNodeComponent :node="props.node">
+        <div class="synth-node-control-group">
+
         </div>
-    </div>
+   </BaseNodeComponent>
 </template>

@@ -1,48 +1,94 @@
+import type { Graph } from "@/graph"
+
 export abstract class SynthBaseNode {
     
     audioContext: AudioContext
-    inputs:  {[inputName: string]:  { sourceNode: SynthBaseNode; sourceOutputName: string} }
-    outputs:  {[outputName: string]:  { destinationNode: SynthBaseNode; destinationInputName: string} }
+    name: string
+    //inputs:  {[inputName: string]:  { [sourceNodeName: string]: { [sourceOutputName: string]: {sourceNode: SynthBaseNode} }}}
+    linkedInputs: Map<string, Map<string, Map<string,SynthBaseNode>>>
+    //outputs:  {[outputName: string]:  { [destinationNodeName: string]: {[destinationInputName: string]: {destinationNode: SynthBaseNode; } }}}
+    linkedOutputs: Map<string, Map<string, Map<string,SynthBaseNode>>>
+    
 
-
-    constructor(audioContext: AudioContext){
+    constructor(name: string, audioContext: AudioContext){
+        this.name = name
         this.audioContext = audioContext
-        this.inputs = {}
-        this.outputs={}
+        this.linkedInputs = new Map()
+        this.linkedOutputs = new Map()
     }
 
     abstract getInputs() : {[inputName:string]: AudioParam | AudioNode}
-    abstract getOutputs() : {[outputName:string]: {node: AudioNode, index: number }}
+    abstract getOutputs() : {[outputName: string]: {node: AudioNode; index: number}}
 
 
     linkInput(sourceNode: SynthBaseNode, sourceOutputName:string, inputName: string){
-        this.inputs[inputName] =
-        {
-            "sourceNode": sourceNode,
-            "sourceOutputName": sourceOutputName,
+        //TODO: isn't there a way to have default when accessing an object property or map key in Javascript?
+        //still experimental: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/getOrInsert
+        if(!(this.linkedInputs.has(inputName))) {
+            this.linkedInputs.set(inputName, new Map())
         }
-        
+        const linkedInput = this.linkedInputs.get(inputName)!
+        const sourceNodeName = sourceNode.name
+        if(!(linkedInput.has(sourceNodeName))) {
+            linkedInput.set(sourceNodeName, new Map())
+        }
+        const linkedInputSourceNode = linkedInput.get(sourceNodeName)!
+        if(!(linkedInputSourceNode.has(sourceOutputName))) {
+            linkedInputSourceNode.set(sourceOutputName, sourceNode)
+        }
     }
 
-    linkOutput(sourceNode: SynthBaseNode, sourceOutputName:string, inputName: string){
-        this.inputs[inputName] =
-        {
-            "sourceNode": sourceNode,
-            "sourceOutputName": sourceOutputName,
+    linkOutput(destinationNode: SynthBaseNode, destinationInputName: string, outputName: string){
+        //TODO: isn't there a way to have default when accessing an object property or map key in Javascript?
+        //still experimental: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/getOrInsert
+        if(!(this.linkedOutputs.has(outputName))) {
+            this.linkedOutputs.set(outputName, new Map())
         }
-        
+        const linkedOutput = this.linkedOutputs.get(outputName)!
+        const destinationNodeName = destinationNode.name
+        if(!(linkedOutput.has(destinationNodeName))) {
+            linkedOutput.set(destinationNodeName, new Map())
+        }
+        const linkedOutputDestinationNode = linkedOutput.get(destinationNodeName)!
+        if(!(linkedOutputDestinationNode.has(destinationInputName))) {
+            linkedOutputDestinationNode.set(destinationInputName, destinationNode)
+        }   
+    }
+
+    unlinkInput(sourceNode: SynthBaseNode, sourceOutputName:string, inputName: string){
+        if(this.linkedInputs.has(inputName)) {
+            const linkedInput = this.linkedInputs.get(inputName)!
+            const sourceNodeName = sourceNode.name
+            if(linkedInput.has(sourceNodeName)) {
+                const linkedInputSourceNode = linkedInput.get(sourceNodeName)!
+                if(linkedInputSourceNode.has(sourceOutputName)) {
+                    linkedInputSourceNode.delete(sourceOutputName)
+                }
+            }
+        }
+    }
+
+    unlinkOutput(destinationNode: SynthBaseNode, destinationInputName: string, outputName: string){
+        if(this.linkedOutputs.has(outputName)) {
+            const linkedOutput = this.linkedOutputs.get(outputName)!
+            const destinationNodeName = destinationNode.name
+            if(linkedOutput.has(destinationNodeName)) {
+                const linkedOutputDestinationNode = linkedOutput.get(destinationNodeName)!
+                if(linkedOutputDestinationNode.has(destinationInputName)) {
+                    linkedOutputDestinationNode.delete(destinationInputName)
+                }
+            }
+        }
     }
 }
 
 abstract class Gain extends SynthBaseNode{
-    name: string
     gain: GainNode
     muter: GainNode
     isMuted: boolean
 
     constructor(name: string, audioContext: AudioContext, gain: number) {
-        super(audioContext);
-        this.name = name
+        super(name, audioContext);
 
         this.gain = audioContext.createGain()
         this.gain.gain.value = gain;
@@ -150,7 +196,7 @@ export class VCO extends BaseOscillator{
 export class Speaker extends SynthBaseNode {
 
     constructor(audioContext: AudioContext){
-        super(audioContext)
+        super("speaker", audioContext)
     }
     
     getInputs(): { [inputName: string]: AudioNode; } {
@@ -355,13 +401,11 @@ class Bass extends FrequencySequencer{
 
 export class MusicSequence extends SynthBaseNode {
 
-    name: string
     melody: Melody
     bass: Melody
     
     constructor(name: string, audioContext: AudioContext) {
-        super(audioContext);
-        this.name = name;
+        super(name, audioContext);
 
         this.melody = new Melody(`${name}/melody`, audioContext);
         this.bass = new Bass(`${name}/bass`, audioContext);
