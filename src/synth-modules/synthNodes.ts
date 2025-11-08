@@ -4,9 +4,9 @@ export abstract class SynthBaseNode {
     
     audioContext: AudioContext
     name: string
-    //inputs:  {[inputName: string]:  { [sourceNodeName: string]: { [sourceOutputName: string]: {sourceNode: SynthBaseNode} }}}
+    //linkedInputs:  {[inputName: string]:  { [sourceNodeName: string]: { [sourceOutputName: string]: {sourceNode: SynthBaseNode} }}}
     linkedInputs: Map<string, Map<string, Map<string,SynthBaseNode>>>
-    //outputs:  {[outputName: string]:  { [destinationNodeName: string]: {[destinationInputName: string]: {destinationNode: SynthBaseNode; } }}}
+    //linkedOutputs:  {[outputName: string]:  { [destinationNodeName: string]: {[destinationInputName: string]: {destinationNode: SynthBaseNode; } }}}
     linkedOutputs: Map<string, Map<string, Map<string,SynthBaseNode>>>
     
 
@@ -80,6 +80,34 @@ export abstract class SynthBaseNode {
             }
         }
     }
+
+    abstract exportNodeData(): {[isPropertyNamee: string]: string|number|boolean}
+
+    baseExportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+        return {"name": this.name}
+    }
+
+    export(): {nodeData: object, linkedInputs:{inputName: string; sourceNodeName: string; sourceOutputName: string}[]} {
+        const linkedInputs = []
+        //reminder: inputs format:  {[inputName: string]:  { [sourceNodeName: string]: { [sourceOutputName: string]: {sourceNode: SynthBaseNode} }}}
+        for(const inputName of this.linkedInputs.keys()) {
+            for(const sourceNodeName of this.linkedInputs.get(inputName)!.keys()) {
+                for(const sourceOutputName of this.linkedInputs.get(inputName)!.get(sourceNodeName)!.keys()) {
+                    linkedInputs.push(
+                        {
+                            "inputName": inputName,
+                            "sourceNodeName": sourceNodeName,
+                            "sourceOutputName": sourceOutputName
+                        }
+                    )
+                }
+            }
+        }
+        return {
+            "linkedInputs": linkedInputs,
+            "nodeData": this.exportNodeData()
+        }
+    }
 }
 
 abstract class Gain extends SynthBaseNode{
@@ -87,16 +115,20 @@ abstract class Gain extends SynthBaseNode{
     muter: GainNode
     isMuted: boolean
 
-    constructor(name: string, audioContext: AudioContext, gain: number) {
+    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
         super(name, audioContext);
-
+        const gain: number = config.gain as number ?? 0
+        const isMuted: boolean = config.isMuted as boolean ?? false
         this.gain = audioContext.createGain()
         this.gain.gain.value = gain;
 
         this.muter = audioContext.createGain()
-        this.muter.gain.value = 1
-        this.isMuted = false
-
+        this.isMuted = isMuted
+        if(this.isMuted)  {
+            this.muter.gain.value = 0
+        } else {
+            this.muter.gain.value = 1
+        }
         this.gain.connect(this.muter)
     }
 
@@ -136,15 +168,25 @@ abstract class Gain extends SynthBaseNode{
             }
         }
     }
+
+    baseExportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+        const result = super.baseExportNodeData()
+        result["gain"] = this.getGain()
+        result["isMuted"] = this.isMuted
+        return result
+    }
 }
 
 abstract class BaseOscillator extends Gain {
     oscillator: OscillatorNode
 
-    constructor(name: string, audioContext: AudioContext, frequency: number, gain: number) {
-        super(name, audioContext, gain)
+    constructor(name: string, audioContext: AudioContext, frequency: number, config : {[parameterName: string]: string | number | boolean | null}) {
+        super(name, audioContext, config)
+        const oscillatorType: OscillatorType = config.oscillatorType as OscillatorType ?? "sine"
         this.oscillator = audioContext.createOscillator()
         this.oscillator.frequency.value = frequency
+        this.oscillator.type = oscillatorType
+        
         this.oscillator.connect(this.gain)
         this.oscillator.start()
     }
@@ -170,19 +212,28 @@ abstract class BaseOscillator extends Gain {
     setType(value: OscillatorType) {
         this.oscillator.type=value
     }
+
+    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+        const result = super.baseExportNodeData()
+        result["frequency"] = this.getFrequency()
+        result["oscillatorType"] = this.getType()
+        return result
+    }
 }
 
 export class LFO extends BaseOscillator{
     
-    constructor(name: string, audioContext: AudioContext) {
-        super(name, audioContext, 1, 0);
+    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
+        const frequency: number = config.frequency as number ?? 1
+        super(name, audioContext, frequency, config);
     }
 }
 
 export class VCO extends BaseOscillator{
 
-    constructor(name: string, audioContext: AudioContext) {
-        super(name, audioContext, 440, 1);
+    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
+        const frequency: number = config.frequency as number ?? 440
+        super(name, audioContext, frequency, config);
     }
 
     getInputs(){
@@ -207,16 +258,22 @@ export class Speaker extends SynthBaseNode {
         return {};
     }
 
+    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+        const result = super.baseExportNodeData()
+        return result
+    }
+
 }
 
 export class Delay extends Gain {
 
     delay: DelayNode
 
-    constructor(name: string, audioContext: AudioContext){
-        super(name, audioContext,0);
+    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}){
+        const delayTime: number = config.delayTime as number ?? 0.25
+        super(name, audioContext, config);
         this.delay = audioContext.createDelay();
-        this.delay.delayTime.value = 0.25;
+        this.delay.delayTime.value = delayTime;
         this.delay.connect(this.gain);
     }
 
@@ -245,17 +302,31 @@ export class Delay extends Gain {
     setDelayTime(seconds: number) {
         this.delay.delayTime.setValueAtTime(seconds, this.audioContext.currentTime);
     }
+
+    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+        const result = super.baseExportNodeData()
+        result["delayTime"] = this.getDelayTime()
+        return result
+    }
 }
 
 export class Filter extends Gain {
 
     filter: BiquadFilterNode
         
-    constructor(name: string, audioContext: AudioContext){
-        super(name, audioContext, 1);
+    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}){
+        const cutoffFrequency: number = config.cutoffFrequency as number ?? 440
+        const filterType: BiquadFilterType = config.filterType as BiquadFilterType ?? "lowpass"
+        const q: number = config.q as number ?? 1
+        const filterGain: number = config.filterGain as number ?? 1
+        const filterDetune: number = config.filterDetune as number ?? 1
+        super(name, audioContext, config);
         this.filter = audioContext.createBiquadFilter();
-        this.filter.frequency.value = 440;
-        this.filter.Q.value = 1;
+        this.filter.frequency.value = cutoffFrequency;
+        this.filter.type = filterType
+        this.filter.Q.value = q;
+        this.filter.gain.value = filterGain
+        this.filter.detune.value = filterDetune
         this.filter.connect(this.gain);
     }
 
@@ -307,6 +378,16 @@ export class Filter extends Gain {
 
     setFilterDetune(value: number) {
         this.filter.gain.setValueAtTime(value, this.audioContext.currentTime);
+    }
+
+    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+        const result = super.baseExportNodeData()
+        result["filterType"] = this.getFilterType()
+        result["cutoffFrequency"] = this.getCutoffFrequency()
+        result["q"] = this.getQ()
+        result["filterGain"] = this.getFilterGain()
+        result["filterDetune"] = this.getFilterDetune()
+        return result
     }
 }
 
@@ -400,11 +481,11 @@ class Bass extends FrequencySequencer{
 }
 
 export class MusicSequence extends SynthBaseNode {
-
+    
     melody: Melody
     bass: Melody
     
-    constructor(name: string, audioContext: AudioContext) {
+    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
         super(name, audioContext);
 
         this.melody = new Melody(`${name}/melody`, audioContext);
@@ -438,5 +519,9 @@ export class MusicSequence extends SynthBaseNode {
     stop() {
             this.melody.stop();
             this.bass.stop();
+    }
+
+    exportNodeData(): { [isPropertyNamee: string]: string | number | boolean } {
+        return super.baseExportNodeData()
     }
 }

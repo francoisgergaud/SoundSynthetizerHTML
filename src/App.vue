@@ -12,6 +12,7 @@
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
+  const loadedFile = ref<string>("")
   const nodeType = ref<string>("vco")
   const source = ref<{node: SynthBaseNode, outputName: string} | null>(null)
   const destination = ref<{node: SynthBaseNode, inputName: string} | null>(null)
@@ -20,11 +21,47 @@
 
 
   function addNode() {
-    graph.value.addNode(nodeName.value,nodeType.value )
+    graph.value.addNode(nodeName.value,nodeType.value, {})
   }
 
   function linkNodes() {
     Graph.linkNodes(source.value!.node, source.value!.outputName, destination.value!.node, destination.value!.inputName)
+  }
+
+  function exportGraph() {
+    const content = graph.value.export()
+    const fileName = "synthModules.json"
+    const jsonContent = JSON.stringify(content)
+    const blob = new Blob([jsonContent], {type: 'application/json'});
+    if((window.navigator as any).msSaveOrOpenBlob) {
+        (window.navigator as any).msSaveBlob(blob, fileName);
+    }
+    else{
+        const elem = window.document.createElement('a');
+        elem.href = window.URL.createObjectURL(blob);
+        elem.download = fileName;        
+        document.body.appendChild(elem);
+        elem.click();        
+        document.body.removeChild(elem);
+    }
+  }
+
+  function importGraph(event: Event){
+    if ((event.target as HTMLInputElement).files && (event.target as HTMLInputElement).files!.length) {
+      const file = (event.target as HTMLInputElement).files?.item(0)
+      if (file) {
+        let reader = new FileReader();
+        reader.onload = function (event) {
+          const fileContent = JSON.parse(event.target!.result! as string); //UTF-8 content should be automatically decoded as string by browser (no array-buffer)
+          graph.value.import(fileContent)
+        }
+        reader.onerror = function (event) {
+          document.getElementById("fileUpload")!.innerHTML = "error reading file";
+        }
+        reader.readAsText(file, "UTF-8");
+      }
+    }
+
   }
 
   const allInputs: ComputedRef<{[inputName:string]: {node: SynthBaseNode, inputName: string} }> = computed( () =>{
@@ -37,7 +74,19 @@
 
 </script>
 
+
 <template>
+  <header>
+    <ul class="nav">
+        <li class="navlink">
+          <label for="fileUpload" class="custom-file-upload">Import</label>
+          <input type="file" id="fileUpload" accept="application/json" @change="(event) => importGraph(event)"></input>
+        </li>
+        <li class="navlink">
+          <a id="exportGraph" @click="(event) => exportGraph()">Export</a>
+        </li>
+    </ul>
+  </header>
   <div class="control-group">
     <select id="nodeType" v-model="nodeType">
       <option value="vco">Sound Oscillator</option>
