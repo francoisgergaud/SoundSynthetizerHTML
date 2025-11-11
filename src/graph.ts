@@ -1,3 +1,4 @@
+import { Sequencer } from "./synth-modules/sequencer-node"
 import { Delay, Filter, LFO, MusicSequence, Speaker, VCO, type SynthBaseNode } from "./synth-modules/synthNodes"
 
 export class Graph {
@@ -30,6 +31,10 @@ export class Graph {
         case "filter":
             const filter = new Filter(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": filter, "type" : nodeType}
+            break
+        case "sequencer":
+            const sequencer = new Sequencer(nodeName, this.audioContext, nodeConfiguration)
+            this.nodes[nodeName] = {"node": sequencer, "type" : nodeType}
             break
         case "music":
             const musicSequence = new MusicSequence(nodeName, this.audioContext, nodeConfiguration)

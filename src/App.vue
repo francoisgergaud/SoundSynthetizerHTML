@@ -6,9 +6,10 @@
   import LFOComponent from "./synth-modules/lfo.vue"
   import DelayComponent from "./synth-modules/delay.vue"
   import FilterComponent from "./synth-modules/filter.vue"
-  import MusicSequencerComponent from "./synth-modules/musicSequencer.vue"
+  import SequencerComponent from "./synth-modules/sequencer.vue"
   import { SynthBaseNode, VCO, LFO, Delay, Filter, MusicSequence } from "./synth-modules/synthNodes"
   import { Graph } from "./graph"
+  import type { Sequencer } from "./synth-modules/sequencer-node"
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -93,7 +94,7 @@
       <option value="lfo">Low Freq. Oscillator</option>
       <option value="delay">Delay</option>
       <option value="filter">Filter</option>
-      <option value="music">Music Sequence</option>
+      <option value="sequencer">Sequencer</option>
     </select>
        
     &nbsp;
@@ -133,7 +134,7 @@
         <LFOComponent v-if="nodeData.type === 'lfo' " :node="nodeData.node as LFO"></LFOComponent>
         <DelayComponent v-if="nodeData.type === 'delay' " :node="nodeData.node as Delay"></DelayComponent>
         <FilterComponent v-if="nodeData.type === 'filter' " :node="nodeData.node as Filter"></FilterComponent>
-        <MusicSequencerComponent v-if="nodeData.type === 'music' " :node="nodeData.node as MusicSequence"></MusicSequencerComponent>
+        <SequencerComponent v-if="nodeData.type === 'sequencer' " :node="nodeData.node as Sequencer"></SequencerComponent>
     </div>
   </div>
  
