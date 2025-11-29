@@ -7,9 +7,11 @@
   import DelayComponent from "./synth-modules/delay.vue"
   import FilterComponent from "./synth-modules/filter.vue"
   import SequencerComponent from "./synth-modules/sequencer.vue"
+  import AnalyzerComponent from "./synth-modules/analyzer.vue"
   import { SynthBaseNode, VCO, LFO, Delay, Filter, MusicSequence } from "./synth-modules/synthNodes"
   import { Graph } from "./graph"
   import type { Sequencer } from "./synth-modules/sequencer-node"
+  import type { Analyzer } from "./synth-modules/analyzer-node"
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -95,6 +97,7 @@
       <option value="delay">Delay</option>
       <option value="filter">Filter</option>
       <option value="sequencer">Sequencer</option>
+      <option value="analyzer">Analyzer</option>
     </select>
        
     &nbsp;
@@ -135,6 +138,7 @@
         <DelayComponent v-if="nodeData.type === 'delay' " :node="nodeData.node as Delay"></DelayComponent>
         <FilterComponent v-if="nodeData.type === 'filter' " :node="nodeData.node as Filter"></FilterComponent>
         <SequencerComponent v-if="nodeData.type === 'sequencer' " :node="nodeData.node as Sequencer"></SequencerComponent>
+        <AnalyzerComponent v-if="nodeData.type === 'analyzer' " :node="nodeData.node as Analyzer"></AnalyzerComponent>
     </div>
   </div>
  

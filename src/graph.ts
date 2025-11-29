@@ -1,3 +1,4 @@
+import { Analyzer } from "./synth-modules/analyzer-node"
 import { Sequencer } from "./synth-modules/sequencer-node"
 import { Delay, Filter, LFO, MusicSequence, Speaker, VCO, type SynthBaseNode } from "./synth-modules/synthNodes"
 
@@ -39,6 +40,10 @@ export class Graph {
         case "music":
             const musicSequence = new MusicSequence(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": musicSequence, "type" : nodeType}
+            break
+        case "analyzer":
+            const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration)
+            this.nodes[nodeName] = {"node": analyzer, "type" : nodeType}
             break
         default:
             console.error(`addNode: unknown node-type ${nodeType}`)
