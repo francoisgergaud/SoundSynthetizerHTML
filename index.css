@@ -137,7 +137,12 @@ select {.synth-node-inputs {
 }
 
 .synth-node-control-group input[type="range"]{
-    padding:0
+    padding:0;
+}
+
+.synth-node-control-group input[type="text"]{
+    margin-left: 1em;
+    width: 40px;
 }
 
 #links {

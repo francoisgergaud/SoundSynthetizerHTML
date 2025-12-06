@@ -110,14 +110,14 @@ export abstract class SynthBaseNode {
     }
 }
 
-abstract class Gain extends SynthBaseNode{
+export abstract class Gain extends SynthBaseNode{
     gain: GainNode
     muter: GainNode
     isMuted: boolean
 
     constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
         super(name, audioContext);
-        const gain: number = config.gain as number ?? 0
+        const gain: number = config.gain as number ?? 1
         const isMuted: boolean = config.isMuted as boolean ?? false
         this.gain = audioContext.createGain()
         this.gain.gain.value = gain;
@@ -177,72 +177,7 @@ abstract class Gain extends SynthBaseNode{
     }
 }
 
-abstract class BaseOscillator extends Gain {
-    oscillator: OscillatorNode
 
-    constructor(name: string, audioContext: AudioContext, frequency: number, config : {[parameterName: string]: string | number | boolean | null}) {
-        super(name, audioContext, config)
-        const oscillatorType: OscillatorType = config.oscillatorType as OscillatorType ?? "sine"
-        this.oscillator = audioContext.createOscillator()
-        this.oscillator.frequency.value = frequency
-        this.oscillator.type = oscillatorType
-        
-        this.oscillator.connect(this.gain)
-        this.oscillator.start()
-    }
-
-    getFrequency(): number {
-        return this.oscillator.frequency.value
-    }
-
-    setFrequency(value: number) {
-        this.oscillator.frequency.setValueAtTime(value, this.audioContext.currentTime)
-    }
-
-    getInputs() : {[inputName:string]: AudioParam | AudioNode}{
-        const inputs = super.getInputs()
-        inputs["frequency"] = this.oscillator.frequency
-        return inputs
-    }
-
-    getType() : OscillatorType {
-        return this.oscillator.type
-    }
-
-    setType(value: OscillatorType) {
-        this.oscillator.type=value
-    }
-
-    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
-        const result = super.baseExportNodeData()
-        result["frequency"] = this.getFrequency()
-        result["oscillatorType"] = this.getType()
-        return result
-    }
-}
-
-export class LFO extends BaseOscillator{
-    
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
-        const frequency: number = config.frequency as number ?? 1
-        super(name, audioContext, frequency, config);
-    }
-}
-
-export class VCO extends BaseOscillator{
-
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
-        const frequency: number = config.frequency as number ?? 440
-        super(name, audioContext, frequency, config);
-    }
-
-    getInputs(){
-        const inputs = super.getInputs();
-        inputs["detune"] = this.oscillator.detune;
-        return inputs;
-    }
-
-}
 
 export class Speaker extends SynthBaseNode {
 
@@ -388,140 +323,5 @@ export class Filter extends Gain {
         result["filterGain"] = this.getFilterGain()
         result["filterDetune"] = this.getFilterDetune()
         return result
-    }
-}
-
-abstract class FrequencySequencer {
-    
-    name: string
-    context: AudioContext
-    currentStep: number // current detune index
-    intervalId: number | null // id of the timer use to sequence the frequencies
-    nextNoteTime: number // The precise context.currentTime when the next note should play
-    noteDurationMs: number // The length of a single note in milliseconds
-    oscillator: OscillatorNode // the oscillator used to output the frequency
-
-    constructor(name: string, audioContext: AudioContext) {
-        this.name = name
-        this.context = audioContext
-        this.currentStep = 0
-        this.intervalId = null
-        this.nextNoteTime = 0.0
-        this.noteDurationMs = 0.0
-
-        this.oscillator = audioContext.createOscillator()
-        this.oscillator.frequency.value = 440
-        this.oscillator.start()
-    }
-
-    abstract getMelody(): number[]
-
-    scheduler() {
-        this.currentStep = (this.currentStep + 1) % this.getMelody().length;
-        this.nextNoteTime += this.noteDurationMs;
-        this._scheduleNoteChange(this.nextNoteTime)
-        this.intervalId = setTimeout(this.scheduler.bind(this), this.noteDurationMs)
-    }
-
-    _scheduleNoteChange(scheduleTime: number) {
-        const noteInCents = this.getMelody()[this.currentStep];
-        //input qre detune in cents, hence the use of the oscillator's detune parameter
-        this.oscillator.detune.setValueAtTime(noteInCents!, scheduleTime/1000);
-    }
-
-    start(bpm: number, noteDuration = 4) {
-        if (this.intervalId) this.stop();
-        // Calculate note length in seconds
-        const beatDuration = 60 / bpm;
-        this.noteDurationMs = beatDuration * (4 / noteDuration) *1000
-        // Initialize the next note time to the current context time
-        this.nextNoteTime = this.context.currentTime
-        // Run scheduler once immediately to schedule the very first note
-        this._scheduleNoteChange(0)
-        // Trigger the scheduler, which trigger itself infinitly
-        this.scheduler()
-    }
-
-    stop() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-            this.currentStep = 0;
-            console.log("Melody stopped.");
-        }
-    }
-}
-
-
-class Melody extends FrequencySequencer{
-
-    getMelody(): number[] {
-        return [
-            0,    // A3
-            1200, // A4 (+1 octave)
-            1000, // G4 (+10 semitones)
-            700,  // E4 (+7 semitones)
-            1000, // G4
-            700,  // E4
-            500,  // D4 (+5 semitones)
-            300   // C4 (+3 semitones)
-        ];
-    }
-}
-
-class Bass extends FrequencySequencer{
-    getMelody(): number[] {
-        return [
-            0,    // A
-            200,  // B
-            300,  // C
-            500,  // D
-        ];
-    }
-}
-
-export class MusicSequence extends SynthBaseNode {
-    
-    melody: Melody
-    bass: Melody
-    
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
-        super(name, audioContext);
-
-        this.melody = new Melody(`${name}/melody`, audioContext);
-        this.bass = new Bass(`${name}/bass`, audioContext);
-
-        this.start(90);
-    }
-
-    getOutputs():  { [outputName: string]: { node: AudioNode; index: number; }; } {
-        return {
-            "melody": {
-                "node": this.melody.oscillator,
-                "index": 0,
-            },
-            "bass": {
-                "node": this.bass.oscillator,
-                "index": 0,
-            },
-        }
-    }
-
-    getInputs() {
-        return {}
-    }
-
-    start(bpm: number) {
-            this.melody.start(bpm, 16);
-            this.bass.start(bpm, 2);
-    }
-
-    stop() {
-            this.melody.stop();
-            this.bass.stop();
-    }
-
-    exportNodeData(): { [isPropertyNamee: string]: string | number | boolean } {
-        return super.baseExportNodeData()
     }
 }

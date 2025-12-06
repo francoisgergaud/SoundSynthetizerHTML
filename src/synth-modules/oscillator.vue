@@ -1,15 +1,15 @@
 <script setup lang="ts">
     import { ref } from 'vue'
-    import { LFO } from './synthNodes'
+    import { Oscillator } from './oscillator-node'
     import BaseNodeComponent from './base-node-component.vue';
 
     const props = defineProps<{
-        node: LFO,
+        node: Oscillator,
     }>()
 
     let frequencyParameter = ref<string>(props.node.getFrequency().toString())
     let waveFormParameter = ref<OscillatorType>(props.node.getType())
-    let gainParameter = ref<string>(props.node.getGain().toString())
+    let gainParameter = ref<string>((props.node.getGain()).toString())
     let muteParameter = ref<boolean>(props.node.isMute())
 
 
@@ -43,8 +43,8 @@
     <BaseNodeComponent :node="props.node">
         <div class="synth-node-control-group">
             <label for="{{props.node.name}}-frequency">Frequency (Hz): </label>
-            <input type="range" id="{{props.node.name}}-frequency" min="0" max="20" :value="frequencyParameter" step="1" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
-            <span id="{{props.node.name}}-freqValue">{{frequencyParameter}}</span>
+            <input type="range" id="{{props.node.name}}-frequency" min="0" max="10000" :value="frequencyParameter" step="1" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
+            <input type="text" id="{{props.node.name}}-frequency-text" :value="frequencyParameter" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
         </div>
 
         <div class="synth-node-control-group">
@@ -59,7 +59,8 @@
 
         <div class="synth-node-control-group">
             <label for="{{props.node.name}}-gain">Gain: </label>
-            <input type="text" id="{{props.node.name}}-gain" :value="gainParameter" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
+            <input type="range" id="{{props.node.name}}-gain" min="0" max="5000" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
+            <input type="text" id="{{props.node.name}}-gain-text" :value="gainParameter" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
         </div>
 
         <div class="synth-node-control-group">

@@ -2,16 +2,16 @@
 
 <script setup lang="ts">
   import { ref, computed, type ComputedRef } from "vue"
-  import VCOComponent from "./synth-modules/vco.vue"
-  import LFOComponent from "./synth-modules/lfo.vue"
+  import OscillatorComponent from "./synth-modules/oscillator.vue"
   import DelayComponent from "./synth-modules/delay.vue"
   import FilterComponent from "./synth-modules/filter.vue"
   import SequencerComponent from "./synth-modules/sequencer.vue"
   import AnalyzerComponent from "./synth-modules/analyzer.vue"
-  import { SynthBaseNode, VCO, LFO, Delay, Filter, MusicSequence } from "./synth-modules/synthNodes"
+  import { SynthBaseNode, Delay, Filter } from "./synth-modules/synthNodes"
   import { Graph } from "./graph"
   import type { Sequencer } from "./synth-modules/sequencer-node"
   import type { Analyzer } from "./synth-modules/analyzer-node"
+  import type { Oscillator } from "./synth-modules/oscillator-node"
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -92,8 +92,7 @@
   </header>
   <div class="control-group">
     <select id="nodeType" v-model="nodeType">
-      <option value="vco">Sound Oscillator</option>
-      <option value="lfo">Low Freq. Oscillator</option>
+      <option value="oscillator">Oscillator</option>
       <option value="delay">Delay</option>
       <option value="filter">Filter</option>
       <option value="sequencer">Sequencer</option>
@@ -133,8 +132,7 @@
 
   <div id="nodes">
     <div v-for="(nodeData,nodeName) in graph.nodes" v-bind:key="nodeName">
-        <VCOComponent v-if="nodeData.type === 'vco' " :node="nodeData.node as VCO"></VCOComponent>
-        <LFOComponent v-if="nodeData.type === 'lfo' " :node="nodeData.node as LFO"></LFOComponent>
+        <OscillatorComponent v-if="nodeData.type === 'oscillator' " :node="nodeData.node as Oscillator"></OscillatorComponent>
         <DelayComponent v-if="nodeData.type === 'delay' " :node="nodeData.node as Delay"></DelayComponent>
         <FilterComponent v-if="nodeData.type === 'filter' " :node="nodeData.node as Filter"></FilterComponent>
         <SequencerComponent v-if="nodeData.type === 'sequencer' " :node="nodeData.node as Sequencer"></SequencerComponent>

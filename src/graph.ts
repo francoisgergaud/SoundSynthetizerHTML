@@ -1,6 +1,7 @@
 import { Analyzer } from "./synth-modules/analyzer-node"
+import { Oscillator } from "./synth-modules/oscillator-node"
 import { Sequencer } from "./synth-modules/sequencer-node"
-import { Delay, Filter, LFO, MusicSequence, Speaker, VCO, type SynthBaseNode } from "./synth-modules/synthNodes"
+import { Delay, Filter, Speaker, type SynthBaseNode } from "./synth-modules/synthNodes"
 
 export class Graph {
 
@@ -17,13 +18,9 @@ export class Graph {
     addNode(nodeName: string, nodeType: string, nodeConfiguration: {[parameterName: string]: string | number | boolean | null} | null) {
         nodeConfiguration = nodeConfiguration ?? {}
         switch(nodeType) {
-        case "vco":
-            const vco = new VCO(nodeName, this.audioContext, nodeConfiguration)
+        case "oscillator":
+            const vco = new Oscillator(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": vco, "type" : nodeType}
-            break
-        case "lfo":
-            const lfo = new LFO(nodeName, this.audioContext, nodeConfiguration)
-            this.nodes[nodeName] = {"node": lfo, "type" : nodeType}
             break
         case "delay":
             const delay = new Delay(nodeName, this.audioContext, nodeConfiguration)
@@ -36,10 +33,6 @@ export class Graph {
         case "sequencer":
             const sequencer = new Sequencer(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": sequencer, "type" : nodeType}
-            break
-        case "music":
-            const musicSequence = new MusicSequence(nodeName, this.audioContext, nodeConfiguration)
-            this.nodes[nodeName] = {"node": musicSequence, "type" : nodeType}
             break
         case "analyzer":
             const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration)
