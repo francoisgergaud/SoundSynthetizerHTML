@@ -7,11 +7,13 @@
   import FilterComponent from "./synth-modules/filter.vue"
   import SequencerComponent from "./synth-modules/sequencer.vue"
   import AnalyzerComponent from "./synth-modules/analyzer.vue"
+  import ADSRComponent from "./synth-modules/adsr.vue"
   import { SynthBaseNode, Delay, Filter } from "./synth-modules/synthNodes"
   import { Graph } from "./graph"
   import type { Sequencer } from "./synth-modules/sequencer-node"
   import type { Analyzer } from "./synth-modules/analyzer-node"
   import type { Oscillator } from "./synth-modules/oscillator-node"
+  import type { ADSR } from "./synth-modules/adsr-node"
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -75,6 +77,19 @@
     return graph.value.getAllOutputs();
   })
 
+  window.addEventListener('keydown', (e) => {
+      if (e.repeat) { return }
+      if (e.key == 'a') {
+        graph.value.trigger(true)
+      }
+  });
+
+  window.addEventListener('keyup', (e) => {
+      if (e.key == 'a') {
+        graph.value.trigger(false)
+      }
+  });
+
 </script>
 
 
@@ -97,6 +112,7 @@
       <option value="filter">Filter</option>
       <option value="sequencer">Sequencer</option>
       <option value="analyzer">Analyzer</option>
+      <option value="adsr">Envelop</option>
     </select>
        
     &nbsp;
@@ -137,6 +153,7 @@
         <FilterComponent v-if="nodeData.type === 'filter' " :node="nodeData.node as Filter"></FilterComponent>
         <SequencerComponent v-if="nodeData.type === 'sequencer' " :node="nodeData.node as Sequencer"></SequencerComponent>
         <AnalyzerComponent v-if="nodeData.type === 'analyzer' " :node="nodeData.node as Analyzer"></AnalyzerComponent>
+        <ADSRComponent v-if="nodeData.type === 'adsr' " :node="nodeData.node as ADSR"></ADSRComponent>
     </div>
   </div>
  

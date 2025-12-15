@@ -12,7 +12,6 @@
     const canvasHTMLElement = useTemplateRef('analyzerCanvas')
 
     function draw() {
-        let drawVisual = requestAnimationFrame(draw);
         const canvasCtx: CanvasRenderingContext2D = canvasHTMLElement.value?.getContext("2d")!
         const canvasWidth = canvasHTMLElement.value!.width
         const canvasHeight = canvasHTMLElement.value!.height
@@ -65,7 +64,7 @@
         }
     }
 
-    let timerId = setInterval(draw, 50)
+    let timerId = setInterval(() => requestAnimationFrame(draw), 50)
 
 </script>
 

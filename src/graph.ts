@@ -1,16 +1,19 @@
 import { Analyzer } from "./synth-modules/analyzer-node"
 import { Oscillator } from "./synth-modules/oscillator-node"
 import { Sequencer } from "./synth-modules/sequencer-node"
-import { Delay, Filter, Speaker, type SynthBaseNode } from "./synth-modules/synthNodes"
+import { ADSR } from "./synth-modules/adsr-node"
+import { Delay, Filter, Speaker, type SynthBaseNode, type TriggetBaseNode, isTriggetBaseNode } from "./synth-modules/synthNodes"
 
 export class Graph {
 
     nodes: { [nodeName:string]: {node: SynthBaseNode, type: string }}
+    triggerableNodes: { [nodeName:string]: {node: SynthBaseNode & TriggetBaseNode, type: string }}
     audioContext: AudioContext
     speaker: Speaker
     
     constructor(audioContext: AudioContext){
         this.nodes = {}
+        this.triggerableNodes = {}
         this.audioContext = audioContext
         this.speaker = new Speaker(audioContext)
     }
@@ -38,8 +41,16 @@ export class Graph {
             const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": analyzer, "type" : nodeType}
             break
+        case "adsr":
+            const adsr = new ADSR(nodeName, this.audioContext, nodeConfiguration)
+            this.nodes[nodeName] = {"node": adsr, "type" : "adsr"}
+            break
         default:
             console.error(`addNode: unknown node-type ${nodeType}`)
+        }
+        //add the node to be triggered on event
+        if(this.nodes[nodeName] && isTriggetBaseNode(this.nodes[nodeName]["node"])) {
+            this.triggerableNodes[nodeName] = this.nodes[nodeName]
         }
     }
 
@@ -162,6 +173,12 @@ export class Graph {
             }
             const destinationInputName = inputLinkConfiguration["inputName"]
             Graph.linkNodes(sourceNode, sourceOutputName, destinationNode, destinationInputName)
+        }
+    }
+
+    trigger(enabled: boolean): void {
+        for(const nodeName in this.triggerableNodes) {
+            this.triggerableNodes[nodeName]!.node.trigger(enabled)
         }
     }
 }

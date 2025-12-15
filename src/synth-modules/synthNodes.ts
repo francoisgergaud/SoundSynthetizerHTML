@@ -110,12 +110,23 @@ export abstract class SynthBaseNode {
     }
 }
 
+export interface TriggetBaseNode{
+    
+    trigger(enabled: boolean): void
+}
+
+export function isTriggetBaseNode(object: any): object is TriggetBaseNode {
+    //typescript is co;pile ti;e. Runtime does not know about interface. We must check if the
+    //function exists on the object
+    return 'trigger' in object;
+}
+
 export abstract class Gain extends SynthBaseNode{
     gain: GainNode
     muter: GainNode
     isMuted: boolean
 
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
+    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]:any}) {
         super(name, audioContext);
         const gain: number = config.gain as number ?? 1
         const isMuted: boolean = config.isMuted as boolean ?? false
