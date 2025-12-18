@@ -1,6 +1,6 @@
-import { Gain, type TriggetBaseNode } from "./synthNodes"
+import { Gain, type TriggerBaseNode } from "./synthNodes"
 
-export class ADSR extends Gain implements TriggetBaseNode {
+export class ADSR extends Gain implements TriggerBaseNode {
 
     name: string
     audioContext: AudioContext

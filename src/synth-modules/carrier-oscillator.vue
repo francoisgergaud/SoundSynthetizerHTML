@@ -1,15 +1,15 @@
 <script setup lang="ts">
     import { ref } from 'vue'
-    import { Oscillator } from './oscillator-node'
+    import { CarrierOscillator } from './carrier-oscillator-node'
     import BaseNodeComponent from './base-node-component.vue';
 
     const props = defineProps<{
-        node: Oscillator,
+        node: CarrierOscillator,
     }>()
 
     let frequencyParameter = ref<string>(props.node.getFrequency().toString())
     let waveFormParameter = ref<OscillatorType>(props.node.getType())
-    let gainParameter = ref<string>((props.node.getGain()).toString())
+    let gainParameter = ref<number>(props.node.getGain()*100)
     let muteParameter = ref<boolean>(props.node.isMute())
 
 
@@ -24,8 +24,8 @@
     }
 
     function changeGain(value: string) {
-        gainParameter.value = value
-        props.node.setGain(+gainParameter.value);
+        gainParameter.value = +value
+        props.node.setGain(gainParameter.value/100);
     }
 
     function changeMute(value: boolean) {
@@ -58,9 +58,8 @@
         </div>
 
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-gain">Gain: </label>
-            <input type="range" id="{{props.node.name}}-gain" min="0" max="5000" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
-            <input type="text" id="{{props.node.name}}-gain-text" :value="gainParameter" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
+            <label for="{{props.node.name}}-gain">Volume: </label>
+            <input type="range" id="{{props.node.name}}-gain" min="0" max="100" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
         </div>
 
         <div class="synth-node-control-group">

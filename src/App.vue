@@ -2,7 +2,8 @@
 
 <script setup lang="ts">
   import { ref, computed, type ComputedRef } from "vue"
-  import OscillatorComponent from "./synth-modules/oscillator.vue"
+  import CarrierOscillatorComponent from "./synth-modules/carrier-oscillator.vue"
+  import OperatorOscillatorComponent from "./synth-modules/operator-oscillator.vue"
   import DelayComponent from "./synth-modules/delay.vue"
   import FilterComponent from "./synth-modules/filter.vue"
   import SequencerComponent from "./synth-modules/sequencer.vue"
@@ -12,8 +13,9 @@
   import { Graph } from "./graph"
   import type { Sequencer } from "./synth-modules/sequencer-node"
   import type { Analyzer } from "./synth-modules/analyzer-node"
-  import type { Oscillator } from "./synth-modules/oscillator-node"
+  import type { CarrierOscillator } from "./synth-modules/carrier-oscillator-node"
   import type { ADSR } from "./synth-modules/adsr-node"
+  import type { OperatorOscillator } from "./synth-modules/operator-oscillator-node"
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -21,6 +23,7 @@
   const nodeType = ref<string>("vco")
   const source = ref<{node: SynthBaseNode, outputName: string} | null>(null)
   const destination = ref<{node: SynthBaseNode, inputName: string} | null>(null)
+  const isKeyboardPlaying = ref<boolean>(false)
 
   let graph = ref<Graph>(new Graph(audioContext))
 
@@ -77,17 +80,64 @@
     return graph.value.getAllOutputs();
   })
 
-  window.addEventListener('keydown', (e) => {
-      if (e.repeat) { return }
-      if (e.key == 'a') {
-        graph.value.trigger(true)
+
+  const keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+  function fillKeysFrequencyTable(){
+    let frequencyByKey:{[keyName:string]: number} = {}
+    let currentKeyName = "A"
+    let currentOctave = 4
+    let currentFrequency = 440
+    let currentKeyIndex = keys.indexOf(currentKeyName)
+    frequencyByKey[currentKeyName + currentOctave.toString() ] = currentFrequency
+    while( Object.keys(frequencyByKey).length < 12) {
+      currentKeyIndex +=  7 //we multiply the frequency by 1.5 for 7 semi-tones
+      currentFrequency *= 1.5
+      if(currentKeyIndex >=  keys.length) {
+        // we went out of the current octave, we go back to the current octave by dividing the frequency by 2
+        currentKeyIndex -= keys.length
+        currentFrequency /= 2
       }
-  });
+      currentKeyName = keys[currentKeyIndex]!
+      frequencyByKey[currentKeyName + currentOctave.toString() ] = currentFrequency
+    }
+    return frequencyByKey
+  }
+
+  const frequencyByKey = fillKeysFrequencyTable()
+
+  function manageKeyDown(event : KeyboardEvent) {
+      if(!isKeyboardPlaying.value) { return }
+      if (event.repeat) { return }
+      let currentKeyPosition = null
+      const currentOctave = 4
+      switch(event.key) {
+        case 'a': currentKeyPosition = 0; break;
+        case 'w': currentKeyPosition = 1; break;
+        case 's': currentKeyPosition = 2; break;
+        case 'e': currentKeyPosition = 3; break;
+        case 'd': currentKeyPosition = 4; break;
+        case 'f': currentKeyPosition = 5; break;
+        case 't': currentKeyPosition = 6; break;
+        case 'g': currentKeyPosition = 7; break;
+        case 'y': currentKeyPosition = 8; break;
+        case 'h': currentKeyPosition = 9; break;
+        case 'u': currentKeyPosition = 10; break;
+        case 'j': currentKeyPosition = 11; break;
+      }
+      if(currentKeyPosition != null) {
+        const currentKey: string = keys[currentKeyPosition]!
+        console.debug(`keyboard: playing ${currentKey}`)
+        let frequency = frequencyByKey[currentKey + currentOctave.toString()]!
+        graph.value.trigger(true, frequency)
+      }
+  }
+
+  window.addEventListener('keydown', manageKeyDown );
 
   window.addEventListener('keyup', (e) => {
-      if (e.key == 'a') {
-        graph.value.trigger(false)
-      }
+    if(!isKeyboardPlaying.value) { return }
+    graph.value.trigger(false, null)
   });
 
 </script>
@@ -107,7 +157,8 @@
   </header>
   <div class="control-group">
     <select id="nodeType" v-model="nodeType">
-      <option value="oscillator">Oscillator</option>
+      <option value="carrier-oscillator">Carrier Oscillator</option>
+      <option value="operator-oscillator">Operator Oscillator</option>
       <option value="delay">Delay</option>
       <option value="filter">Filter</option>
       <option value="sequencer">Sequencer</option>
@@ -145,10 +196,15 @@
     &nbsp;
     <button id="addLink" @click="(event) => linkNodes()">Connect nodes</button>
   </div>
+  <div id="keyboardPlayMode" class="control-group">
+    <button id="keyboardPlayModeDisabled" @click="(event) => isKeyboardPlaying = true" v-show="!isKeyboardPlaying">Not playing</button>
+    <button id="keyboardPlayModeEnabled" @click="(event) => isKeyboardPlaying = false" v-show="isKeyboardPlaying">Playing</button>
+  </div>
 
   <div id="nodes">
     <div v-for="(nodeData,nodeName) in graph.nodes" v-bind:key="nodeName">
-        <OscillatorComponent v-if="nodeData.type === 'oscillator' " :node="nodeData.node as Oscillator"></OscillatorComponent>
+        <CarrierOscillatorComponent v-if="nodeData.type === 'carrier-oscillator' " :node="nodeData.node as CarrierOscillator"></CarrierOscillatorComponent>
+        <OperatorOscillatorComponent v-if="nodeData.type === 'operator-oscillator' " :node="nodeData.node as OperatorOscillator"></OperatorOscillatorComponent>
         <DelayComponent v-if="nodeData.type === 'delay' " :node="nodeData.node as Delay"></DelayComponent>
         <FilterComponent v-if="nodeData.type === 'filter' " :node="nodeData.node as Filter"></FilterComponent>
         <SequencerComponent v-if="nodeData.type === 'sequencer' " :node="nodeData.node as Sequencer"></SequencerComponent>

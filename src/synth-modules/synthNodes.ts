@@ -110,15 +110,25 @@ export abstract class SynthBaseNode {
     }
 }
 
-export interface TriggetBaseNode{
+export interface TriggerBaseNode{
     
     trigger(enabled: boolean): void
 }
 
-export function isTriggetBaseNode(object: any): object is TriggetBaseNode {
+export interface AudibleFrequencyBaseNode {
+    setFrequency(value: number): void
+}
+
+export function isTriggetBaseNode(object: any): object is TriggerBaseNode {
     //typescript is co;pile ti;e. Runtime does not know about interface. We must check if the
     //function exists on the object
     return 'trigger' in object;
+}
+
+export function isAudibleFrequencyNode(object: any): object is AudibleFrequencyBaseNode {
+    //typescript is co;pile ti;e. Runtime does not know about interface. We must check if the
+    //function exists on the object
+    return 'isVoiced' in object && object['isVoiced'] === true;
 }
 
 export abstract class Gain extends SynthBaseNode{

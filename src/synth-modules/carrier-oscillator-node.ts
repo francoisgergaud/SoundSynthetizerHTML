@@ -1,7 +1,8 @@
-import { Gain } from "./synthNodes"
+import { Gain, type AudibleFrequencyBaseNode } from "./synthNodes"
 
-export class Oscillator extends Gain {
+export class CarrierOscillator extends Gain implements AudibleFrequencyBaseNode{
     oscillator: OscillatorNode
+    isVoiced: boolean
 
     constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
         super(name, audioContext, config)
@@ -12,6 +13,7 @@ export class Oscillator extends Gain {
         this.oscillator.type = oscillatorType
         this.oscillator.connect(this.gain)
         this.oscillator.start()
+        this.isVoiced = true
     }
 
     getFrequency(): number {
