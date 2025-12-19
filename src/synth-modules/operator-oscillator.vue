@@ -7,15 +7,15 @@
         node: OperatorOscillator,
     }>()
 
-    let frequencyParameter = ref<string>(props.node.getFrequency().toString())
+    let ratioParameter = ref<string>(props.node.getRatio().toString())
     let waveFormParameter = ref<OscillatorType>(props.node.getType())
     let gainParameter = ref<string>((props.node.getGain()).toString())
     let muteParameter = ref<boolean>(props.node.isMute())
 
 
-    function changeFrequency(value: string) {
-        frequencyParameter.value = value
-        props.node.setFrequency(+frequencyParameter.value)
+    function changeRatio(value: string) {
+        ratioParameter.value = value
+        props.node.setRatio(+ratioParameter.value)
     }
 
     function changeWaveForm(value: string) {
@@ -42,9 +42,8 @@
 <template>
     <BaseNodeComponent :node="props.node">
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-frequency">Frequency (Hz): </label>
-            <input type="range" id="{{props.node.name}}-frequency" min="0" max="20000" :value="frequencyParameter" step="1" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
-            <input type="text" id="{{props.node.name}}-frequency-text" :value="frequencyParameter" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
+            <label for="{{props.node.name}}-ratio">Ratio: </label>
+            <input type="text" id="{{props.node.name}}-ratio" :value="ratioParameter" @input="(event) => changeRatio((event.currentTarget as HTMLInputElement).value)">
         </div>
 
         <div class="synth-node-control-group">

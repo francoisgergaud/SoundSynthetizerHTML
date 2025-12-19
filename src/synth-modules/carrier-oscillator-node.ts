@@ -2,7 +2,7 @@ import { Gain, type AudibleFrequencyBaseNode } from "./synthNodes"
 
 export class CarrierOscillator extends Gain implements AudibleFrequencyBaseNode{
     oscillator: OscillatorNode
-    isVoiced: boolean
+    isFrequencyBasedOnPitch: boolean
 
     constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
         super(name, audioContext, config)
@@ -13,7 +13,7 @@ export class CarrierOscillator extends Gain implements AudibleFrequencyBaseNode{
         this.oscillator.type = oscillatorType
         this.oscillator.connect(this.gain)
         this.oscillator.start()
-        this.isVoiced = true
+        this.isFrequencyBasedOnPitch = true
     }
 
     getFrequency(): number {

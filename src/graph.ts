@@ -2,21 +2,21 @@ import { Analyzer } from "./synth-modules/analyzer-node"
 import { CarrierOscillator } from "./synth-modules/carrier-oscillator-node"
 import { Sequencer } from "./synth-modules/sequencer-node"
 import { ADSR } from "./synth-modules/adsr-node"
-import { type AudibleFrequencyBaseNode, Delay, Filter, Speaker, type SynthBaseNode, type TriggerBaseNode, isAudibleFrequencyNode, isTriggetBaseNode } from "./synth-modules/synthNodes"
+import { type AudibleFrequencyBaseNode, Delay, Filter, Speaker, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
 import { OperatorOscillator } from "./synth-modules/operator-oscillator-node"
 
 export class Graph {
 
     nodes: { [nodeName:string]: {node: SynthBaseNode, type: string }}
     triggerableNodes: { [nodeName:string]: {node: SynthBaseNode & TriggerBaseNode, type: string }}
-    carrierOscillators: { [nodeName:string]: {node: SynthBaseNode & AudibleFrequencyBaseNode }}
+    adujustableFrequencyOscillators: { [nodeName:string]: {node: SynthBaseNode & AudibleFrequencyBaseNode }}
     audioContext: AudioContext
     speaker: Speaker
     
     constructor(audioContext: AudioContext){
         this.nodes = {}
         this.triggerableNodes = {}
-        this.carrierOscillators = {}
+        this.adujustableFrequencyOscillators = {}
         this.audioContext = audioContext
         this.speaker = new Speaker(audioContext)
     }
@@ -56,11 +56,11 @@ export class Graph {
             console.error(`addNode: unknown node-type ${nodeType}`)
         }
         //add the node to be triggered on event
-        if(this.nodes[nodeName] && isTriggetBaseNode(this.nodes[nodeName]["node"])) {
+        if(this.nodes[nodeName] && isTriggerableBaseNode(this.nodes[nodeName]["node"])) {
             this.triggerableNodes[nodeName] = this.nodes[nodeName]
         }
-        if(this.nodes[nodeName] && isAudibleFrequencyNode(this.nodes[nodeName]["node"])) {
-            this.carrierOscillators[nodeName] = this.nodes[nodeName]
+        if(this.nodes[nodeName] && isFrequencyBasedOnPitchNode(this.nodes[nodeName]["node"])) {
+            this.adujustableFrequencyOscillators[nodeName] = this.nodes[nodeName]
         }
     }
 
@@ -189,8 +189,8 @@ export class Graph {
     trigger(enabled: boolean, frequency: number | null): void {
         // if frequency must be set on carrier oscillators
         if(enabled && frequency != null) {
-            for(const nodeName in this.carrierOscillators) {
-                this.carrierOscillators[nodeName]!.node.setFrequency(frequency)
+            for(const nodeName in this.adujustableFrequencyOscillators) {
+                this.adujustableFrequencyOscillators[nodeName]!.node.setFrequency(frequency)
             }
         }
         //trigger the envelops

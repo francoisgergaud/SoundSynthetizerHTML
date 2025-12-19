@@ -2,18 +2,19 @@ import { Gain } from "./synthNodes"
 
 export class OperatorOscillator extends Gain {
     oscillator: OscillatorNode
-    isVoiced: boolean
+    isFrequencyBasedOnPitch: boolean
+    ratio: number
 
     constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
         super(name, audioContext, config)
         const oscillatorType: OscillatorType = config.oscillatorType as OscillatorType ?? "sine"
         this.oscillator = audioContext.createOscillator()
         this.oscillator.frequency.value = config.frequency as number ?? 0
-        this.oscillator.detune.value = 0 //config.detune as number ?? 0
         this.oscillator.type = oscillatorType
         this.oscillator.connect(this.gain)
         this.oscillator.start()
-        this.isVoiced = true
+        this.isFrequencyBasedOnPitch = true
+        this.ratio = 1
     }
 
     getFrequency(): number {
@@ -21,21 +22,22 @@ export class OperatorOscillator extends Gain {
     }
 
     setFrequency(value: number) {
-        this.oscillator.frequency.setValueAtTime(value, this.audioContext.currentTime)
+        const frequency = value * this.ratio
+        console.debug(`${this.name}: change frequency to ${frequency}`)
+        this.oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime)
     }
 
-    /*getDetune(): number {
-        return this.oscillator.detune.value
-    }*/
+    getRatio(): number {
+        return this.ratio
+    }
 
-    /*setDetune(value: number) {
-       this.oscillator.detune.setValueAtTime(value, this.audioContext.currentTime)
-    }*/
+    setRatio(value: number) {
+        this.ratio = value
+    }
 
     getInputs() : {[inputName:string]: AudioParam | AudioNode}{
         const inputs = super.getInputs()
         inputs["frequency"] = this.oscillator.frequency
-        //inputs["detune"] = this.oscillator.detune;
         return inputs
     }
 
@@ -51,7 +53,7 @@ export class OperatorOscillator extends Gain {
         const result = super.baseExportNodeData()
         result["frequency"] = this.getFrequency()
         result["oscillatorType"] = this.getType()
-        //result["detune"] = this.getDetune()
+        result["ratio"] = this.getRatio()
         return result
     }
 }
