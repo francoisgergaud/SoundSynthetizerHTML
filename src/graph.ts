@@ -1,6 +1,6 @@
 import { Analyzer } from "./synth-modules/analyzer-node"
 import { CarrierOscillator } from "./synth-modules/carrier-oscillator-node"
-import { Sequencer } from "./synth-modules/sequencer-node"
+import { Sequencer } from "./sequencer/sequencer"
 import { ADSR } from "./synth-modules/adsr-node"
 import { type AudibleFrequencyBaseNode, Delay, Filter, Speaker, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
 import { OperatorOscillator } from "./synth-modules/operator-oscillator-node"
@@ -39,10 +39,6 @@ export class Graph {
         case "filter":
             const filter = new Filter(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": filter, "type" : nodeType}
-            break
-        case "sequencer":
-            const sequencer = new Sequencer(nodeName, this.audioContext, nodeConfiguration)
-            this.nodes[nodeName] = {"node": sequencer, "type" : nodeType}
             break
         case "analyzer":
             const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration)
@@ -188,7 +184,7 @@ export class Graph {
 
     trigger(enabled: boolean, frequency: number | null): void {
         // if frequency must be set on carrier oscillators
-        if(enabled && frequency != null) {
+        if(frequency != null) {
             for(const nodeName in this.adujustableFrequencyOscillators) {
                 this.adujustableFrequencyOscillators[nodeName]!.node.setFrequency(frequency)
             }

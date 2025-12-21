@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import { onMounted, ref, useTemplateRef } from 'vue';
-    import type { Track } from './sequencer-node';
+    import type { Track } from '../sequencer/sequencer';
 
     const props = defineProps<{
         track: Track,

@@ -4,6 +4,7 @@
     import BaseNodeComponent from './base-node-component.vue';
 
     const props = defineProps<{
+        id: string,
         node: ADSR,
     }>()
 
@@ -80,24 +81,24 @@
     <BaseNodeComponent :node="props.node">
         <canvas ref="adsrCanvas" width="350" height="200" style="padding:5px"></canvas>
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-attack">Attack (seconds): </label>
-            <input type="range" id="{{props.node.name}}-delay" min="0" max="5" :value="attack" step="0.01" @input="(event) => changeAttack((event.currentTarget as HTMLInputElement).value)">
-            <span id="{{props.node.name}}-attackValue">{{attack}}</span>
+            <label :for="`${props.id}-attack`">Attack (seconds): </label>
+            <input type="range" :id="`${props.id}-delay`" min="0" max="5" :value="attack" step="0.01" @input="(event) => changeAttack((event.currentTarget as HTMLInputElement).value)">
+            <span :id="`${props.id}-attackValue`">{{attack}}</span>
         </div>
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-decay">Decay (seconds): </label>
-            <input type="range" id="{{props.node.name}}-decay" min="0" max="5" :value="decay" step="0.01" @input="(event) => changeDecay((event.currentTarget as HTMLInputElement).value)">
-            <span id="{{props.node.name}}-decayValue">{{decay}}</span>
+            <label :for="`${props.id}-decay`">Decay (seconds): </label>
+            <input type="range" :id="`${props.id}-decay`" min="0" max="5" :value="decay" step="0.01" @input="(event) => changeDecay((event.currentTarget as HTMLInputElement).value)">
+            <span :id="`${props.id}-decayValue`">{{decay}}</span>
         </div>
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-attack">Sustain (level): </label>
-            <input type="range" id="{{props.node.name}}-sustain" min="0" max="100" :value="sustain*100" step="1" @input="(event) => changeSustain((event.currentTarget as HTMLInputElement).value)">
-            <span id="{{props.node.name}}-sustainValue">{{sustain * 100}}%</span>
+            <label :for="`${props.id}-attack`">Sustain (level): </label>
+            <input type="range" :id="`${props.id}-sustain`" min="0" max="100" :value="sustain*100" step="1" @input="(event) => changeSustain((event.currentTarget as HTMLInputElement).value)">
+            <span :id="`${props.id}-sustainValue`">{{sustain * 100}}%</span>
         </div>
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-attack">Release (seconds): </label>
-            <input type="range" id="{{props.node.name}}-release" min="0" max="5" :value="release" step="0.01" @input="(event) => changeRelease((event.currentTarget as HTMLInputElement).value)">
-            <span id="{{props.node.name}}-releaseValue">{{release}}</span>
+            <label :for="`${props.id}-attack`">Release (seconds): </label>
+            <input type="range" :id="`${props.id}-release`" min="0" max="5" :value="release" step="0.01" @input="(event) => changeRelease((event.currentTarget as HTMLInputElement).value)">
+            <span :id="`${props.id}-releaseValue`">{{release}}</span>
         </div>
     </BaseNodeComponent>
     

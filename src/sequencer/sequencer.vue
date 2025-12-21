@@ -1,19 +1,23 @@
 <script setup lang="ts">
-    import BaseNodeComponent from './base-node-component.vue';
     import SequencerStepComponent from './sequencer-step.vue';
     import { computed, ref, useTemplateRef, type ComputedRef } from 'vue';
-    import type { Sequencer, Track } from './sequencer-node';
+    import type { Sequencer, Track } from './sequencer';
+    import { fillKeysFrequencyTable, keys } from './utils';
 
     const props = defineProps<{
         node: Sequencer,
+
     }>()
+    const emit = defineEmits(['selectTrack'])
 
     const scrollableSequencerTracksWrapperHTMLElement = useTemplateRef('scrollableSequencerTracksWrapper')
     const sequencerTracksWrapperHTMLElement = useTemplateRef('sequencerTracksWrapper')
 
     let isPlaying = ref<boolean>(false)
     let autoScroll = ref<boolean>(true)
+    const isKeyboardPlaying = ref<boolean>(false)
     let newTrackName = ref<string>("")
+    const selectedTrack = ref<Track | null>(null)
 
     const getTracks: ComputedRef<Track[]> = computed(
         () => props.node.getTracks()
@@ -68,36 +72,84 @@
     }
 
     function addTrack(){
-        props.node.addTrack(newTrackName.value, null)
+        props.node.addTrack(newTrackName.value, null, null)
     }
+
+    function changeSelectedTrack(trackIndex: number) {
+        selectedTrack.value = props.node.getTracks()[trackIndex]!
+        emit('selectTrack', trackIndex)
+    }
+
+    const frequencyByKey = fillKeysFrequencyTable()
+
+    function manageKeyDown(event : KeyboardEvent) {
+        if(!isKeyboardPlaying.value) { return }
+        if (event.repeat) { return }
+        let currentKeyPosition = null
+        const currentOctave = 4
+        switch(event.key) {
+            case 'a': currentKeyPosition = 0; break;
+            case 'w': currentKeyPosition = 1; break;
+            case 's': currentKeyPosition = 2; break;
+            case 'e': currentKeyPosition = 3; break;
+            case 'd': currentKeyPosition = 4; break;
+            case 'f': currentKeyPosition = 5; break;
+            case 't': currentKeyPosition = 6; break;
+            case 'g': currentKeyPosition = 7; break;
+            case 'y': currentKeyPosition = 8; break;
+            case 'h': currentKeyPosition = 9; break;
+            case 'u': currentKeyPosition = 10; break;
+            case 'j': currentKeyPosition = 11; break;
+        }
+        if(currentKeyPosition != null) {
+            const currentKey: string = keys[currentKeyPosition]!
+            console.debug(`keyboard: playing ${currentKey}`)
+            let frequency = frequencyByKey[currentKey + currentOctave.toString()]!
+            if(selectedTrack.value) {
+            selectedTrack.value.getGraph().trigger(true, frequency)
+            }
+        }
+    }
+
+    window.addEventListener('keydown', manageKeyDown );
+
+    window.addEventListener('keyup', (e) => {
+        if(!isKeyboardPlaying.value) { return }
+        if(selectedTrack.value) {
+        selectedTrack.value.getGraph().trigger(false, null)
+        }
+    });
 
 </script>
 
 <template>
-   <BaseNodeComponent :node="props.node">
-        <div>
-            <div class="synth-node-control-group">
-                <button v-if="! isPlaying" @click="(event) => start()">&#x25B6</button>
-                <button v-if="isPlaying" @click="(event) => stop()">&#x25A0;</button>
-            </div>
-            <div class="synth-node-control-group">
-                <button @click="(event) => addTrack()">&#43;</button>
-                <input type="text" id="newTrackName" placeholder="track name" v-model="newTrackName"/>
-            </div>
+
+    <div>
+        <div class="synth-node-control-group">
+            <button @click="(event) => addTrack()">&#43;</button>
+            <input type="text" id="newTrackName" placeholder="track name" v-model="newTrackName"/>
         </div>
-        <div class="sequencerTracks">
-            <div class="tracksDescriptionWrapper">
-                <div v-for="track in getTracks" class="trackDescription">
-                    {{track.name}}
-                </div>
-            </div -->
-            <div class="scrollableParent" ref="scrollableSequencerTracksWrapper" style="overflow: auto;">
-                <div class="sequencerTracksStepWrapper" ref="sequencerTracksWrapper">
-                    <div v-for="stepNumber in props.node.numberOfStep" :class="['sequencerStep', {'active': props.node.currentStep == stepNumber}]">
-                        <SequencerStepComponent v-for="track in getTracks" :step-number="stepNumber - 1" :track="track"/>
-                    </div>
+    </div>
+    <div class="sequencerTracks" v-show="getTracks.length > 0">
+        <div class="tracksDescriptionWrapper">
+            <div v-for="(track, trackIndex) in getTracks" class="trackDescription" @click="changeSelectedTrack(trackIndex)">
+                {{track.name}}
+            </div>
+        </div -->
+        <div class="scrollableParent" ref="scrollableSequencerTracksWrapper" style="overflow: auto;">
+            <div class="sequencerTracksStepWrapper" ref="sequencerTracksWrapper">
+                <div v-for="stepNumber in props.node.numberOfStep" :class="['sequencerStep', {'active': props.node.currentStep == stepNumber}]">
+                    <SequencerStepComponent v-for="track in getTracks" :step-number="stepNumber - 1" :track="track"/>
                 </div>
             </div>
         </div>
-   </BaseNodeComponent>
+    </div>
+    <div class="sequencerControlsWrapper">
+        <div class="sequencerControls">
+            <button v-show="! isPlaying" @click="(event) => start()">&#x25B6</button>
+            <button v-show="isPlaying" @click="(event) => stop()">&#x25A0;</button>
+            <button id="keyboardPlayModeDisabled" @click="(event) => isKeyboardPlaying = true" v-show="!isKeyboardPlaying">Keyboard disabled</button>
+            <button id="keyboardPlayModeEnabled" @click="(event) => isKeyboardPlaying = false" v-show="isKeyboardPlaying">Keyboard enabled</button>
+        </div>
+    </div>
 </template>

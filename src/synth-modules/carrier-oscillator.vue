@@ -4,6 +4,7 @@
     import BaseNodeComponent from './base-node-component.vue';
 
     const props = defineProps<{
+        id: string,
         node: CarrierOscillator,
     }>()
 
@@ -30,6 +31,7 @@
 
     function changeMute(value: boolean) {
         muteParameter.value = value
+        console.debug(`${props.id} chqnge its mute value to ${muteParameter.value}`)
         if(muteParameter.value) {
             props.node.mute()
         } else {
@@ -42,14 +44,14 @@
 <template>
     <BaseNodeComponent :node="props.node">
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-frequency">Frequency (Hz): </label>
-            <input type="range" id="{{props.node.name}}-frequency" min="0" max="10000" :value="frequencyParameter" step="1" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
-            <input type="text" id="{{props.node.name}}-frequency-text" :value="frequencyParameter" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
+            <label :for="`${props.id}-frequency`">Frequency (Hz): </label>
+            <input type="range" :id="`${props.id}-frequency`" min="40" max="3500" :value="frequencyParameter" step="1" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
+            <input type="text" :id="`${props.id}-frequency-text`" :value="frequencyParameter" @input="(event) => changeFrequency((event.currentTarget as HTMLInputElement).value)">
         </div>
 
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-waveform">Waveform Type:</label>
-            <select id="{{props.node.name}}-waveform" @change="(event) => changeWaveForm((event.currentTarget as HTMLSelectElement).value)">
+            <label :for="`${props.id}-waveform`">Waveform Type:</label>
+            <select :id="`${props.id}-waveform`" @change="(event) => changeWaveForm((event.currentTarget as HTMLSelectElement).value)">
                 <option value="sine" :selected="waveFormParameter === 'sine' ">Sine</option>
                 <option value="square" :selected="waveFormParameter === 'square' ">Square</option>
                 <option value="sawtooth" :selected="waveFormParameter === 'sawtooth' ">Sawtooth</option>
@@ -58,13 +60,13 @@
         </div>
 
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-gain">Volume: </label>
-            <input type="range" id="{{props.node.name}}-gain" min="0" max="100" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
+            <label :for="`${props.id}-gain`">Volume: </label>
+            <input type="range" :id="`${props.id}-gain`" min="0" max="100" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
         </div>
 
         <div class="synth-node-control-group">
-            <label for="{{props.node.name}}-mute">Mute:</label>
-            <input type="checkbox" id="{{props.node.name}}-mute" :value="muteParameter" @input="(event) => changeMute((event.currentTarget as HTMLInputElement).checked)">
+            <label :for="`${props.id}-mute`">Mute:</label>
+            <input type="checkbox" :id="`${props.id}-mute`" :checked="muteParameter" @input="(event) => changeMute((event.currentTarget as HTMLInputElement).checked)">
         </div>
     </BaseNodeComponent>
 </template>

@@ -112,7 +112,7 @@ select {.synth-node-inputs {
     max-width: 800px;
 }
 
-.synth-node-container .header {
+.synth-node-container .header, .sequencerWrapper .header{
   position:absolute;
   margin-top:-25px;
   margin-left:10px;
@@ -157,12 +157,33 @@ input[type="file"] {
   display: none;
 }
 
+.sequencerWrapper {
+    border-style: solid;
+    border-width: 0.1rem;
+    border-radius: 1rem;
+}      
+
+#newTrackName {
+    width: 5rem;
+}
 
 .sequencerTracks {
      display: flex;
 }
+
 .sequencerTracksStepWrapper {
     display: inline flex;
+    border-style: solid;
+    border-width: 0.1rem;
+}
+
+.tracksDescriptionWrapper {
+    background-color: #232323;
+}
+
+.trackDescription {
+    line-height: var(--sequencer-step-height);
+    width: 5rem;
 }
 
 .sequencerStep {
@@ -174,7 +195,8 @@ input[type="file"] {
     &.active {
         background-color: #f5ab00;
         color: #222222;
-    }
+    };
+    background-color: #333;
 }
 
 .trackStep input {
@@ -202,4 +224,14 @@ input[type="file"] {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #f28705; 
+}
+
+.sequencerControlsWrapper {
+    display: flex;
+    width: 20rem;
+    margin-top: 0.5rem;
+}
+
+.sequencerControls {
+    margin: 0 auto;
 }

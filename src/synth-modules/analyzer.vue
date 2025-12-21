@@ -4,6 +4,7 @@
     import BaseNodeComponent from './base-node-component.vue';
 
     const props = defineProps<{
+        id: string,
         node: Analyzer,
     }>()
 
