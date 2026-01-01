@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import { ref } from 'vue'
-    import { Filter } from './synthNodes'
     import BaseNodeComponent from './base-node-component.vue';
+    import type { Filter } from './filter-node';
 
     const props = defineProps<{
         id: string,
@@ -13,8 +13,6 @@
     let filterGainParameter = ref<string>(props.node.getFilterGain().toString())
     let filterQParameter = ref<string>(props.node.getQ().toString())
     let cutoffFrequencyDetuneParameter = ref<string>(props.node.getFilterDetune().toString())
-    let gainParameter = ref<string>((props.node.getGain() * 100).toString())
-    let muteParameter = ref<boolean>(props.node.isMute())
 
 
     function changeCutoffFrequency(value: string) {
@@ -40,20 +38,6 @@
     function changeCutoffFrequencyDetune(value: string) {
         cutoffFrequencyDetuneParameter.value = value
         props.node.setFilterDetune(+cutoffFrequencyDetuneParameter.value)
-    }
-
-    function changeGain(value: string) {
-        gainParameter.value = value
-        props.node.setGain(+gainParameter.value/100);
-    }
-
-    function changeMute(value: boolean) {
-        muteParameter.value = value
-        if(muteParameter.value) {
-            props.node.mute()
-        } else {
-            props.node.unmute()
-        }
     }
 
 </script>
@@ -94,17 +78,6 @@
         <div class="synth-node-control-group">
             <label :for="`${props.id}-detune`">CutOff frequency detune: </label>
             <input type="text" :id="`${props.id}-detune`" :value="cutoffFrequencyDetuneParameter" @input="(event) => changeCutoffFrequencyDetune((event.currentTarget as HTMLInputElement).value)">
-        </div>
-
-        <div class="synth-node-control-group">
-            <label :for="`${props.id}-gain`">Gain: </label>
-            <input type="range" :id="`${props.id}-gain`" min="0" max="100" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
-            <span :id="`${props.id}-gainValue`">{{gainParameter}}%</span>
-        </div>
-
-        <div class="synth-node-control-group">
-            <label :for="`${props.id}-mute`">Mute:</label>
-            <input type="checkbox" :id="`${props.id}-mute`" :value="muteParameter" @input="(event) => changeMute((event.currentTarget as HTMLInputElement).checked)">
         </div>
     </BaseNodeComponent>
 </template>

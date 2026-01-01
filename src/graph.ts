@@ -1,9 +1,10 @@
 import { Analyzer } from "./synth-modules/analyzer-node"
 import { CarrierOscillator } from "./synth-modules/carrier-oscillator-node"
-import { Sequencer } from "./sequencer/sequencer"
 import { ADSR } from "./synth-modules/adsr-node"
-import { type AudibleFrequencyBaseNode, Delay, Filter, Speaker, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
+import { type AudibleFrequencyBaseNode, Speaker, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
 import { OperatorOscillator } from "./synth-modules/operator-oscillator-node"
+import { Filter } from "./synth-modules/filter-node"
+import { Delay } from "./synth-modules/delay-node"
 
 export class Graph {
 

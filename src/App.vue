@@ -7,13 +7,15 @@
   import SequencerComponent from "./sequencer/sequencer.vue"
   import AnalyzerComponent from "./synth-modules/analyzer.vue"
   import ADSRComponent from "./synth-modules/adsr.vue"
-  import { SynthBaseNode, Delay, Filter } from "./synth-modules/synthNodes"
+  import { SynthBaseNode } from "./synth-modules/synthNodes"
   import { Graph } from "./graph"
   import { Sequencer, Track } from "./sequencer/sequencer"
   import type { Analyzer } from "./synth-modules/analyzer-node"
   import type { CarrierOscillator } from "./synth-modules/carrier-oscillator-node"
   import type { ADSR } from "./synth-modules/adsr-node"
   import type { OperatorOscillator } from "./synth-modules/operator-oscillator-node"
+import type { Filter } from "./synth-modules/filter-node"
+import type { Delay } from "./synth-modules/delay-node"
 
   const audioContext = new AudioContext()
   const nodeName = ref<string>("")
@@ -105,12 +107,12 @@
     </ul>
   </header>
 
-    <div class="sequencerWrapper">
-      <label class="header">
-          sequencer
-      </label>
-      <SequencerComponent :node="sequencer" @select-track="(trackIndex: number) => changeSelectedTrack(trackIndex)"/>
-    </div>  
+  <div class="sequencerWrapper">
+    <label class="header">
+        sequencer
+    </label>
+    <SequencerComponent :node="sequencer" @select-track="(trackIndex: number) => changeSelectedTrack(trackIndex)"/>
+  </div>  
 
   <div class="control-group">
     <select id="nodeType" v-model="nodeType">

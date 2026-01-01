@@ -1,6 +1,6 @@
-import { Gain, type TriggerBaseNode } from "./synthNodes"
+import { SynthBaseNode, type TriggerBaseNode } from "./synthNodes"
 
-export class ADSR extends Gain implements TriggerBaseNode {
+export class ADSR extends SynthBaseNode implements TriggerBaseNode {
 
     name: string
     audioContext: AudioContext
@@ -11,7 +11,7 @@ export class ADSR extends Gain implements TriggerBaseNode {
     release: number
 
     constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
-        super(name, audioContext, config)
+        super(name, audioContext)
         this.name = name
         this.audioContext = audioContext
         this.attack = config?.attack as number ?? 0.1
@@ -20,21 +20,17 @@ export class ADSR extends Gain implements TriggerBaseNode {
         this.release = config?.release as number ?? 0.1
         this.constantSourceNode = new ConstantSourceNode(this.audioContext, {offset:0})
         this.constantSourceNode.start();
-        this.gain.gain.value = 0
-        this.constantSourceNode.connect(this.gain.gain)
     }
 
     getInputs(): { [inputName: string]: AudioParam | AudioNode; } {
         /**
          * here we provide the input for audio data to the gain-node, not to the gain-parameter.
          */
-        return {
-            "in": this.gain
-        }
+        return {}
     }
     getOutputs(): { [outputName: string]: { node: AudioNode; index: number; }; } {
         return {
-            "out": {node: this.gain, index: 0}
+            "out": {node: this.constantSourceNode, index: 0}
         }
     }
     exportNodeData(): { [isPropertyNamee: string]: string | number | boolean; } {

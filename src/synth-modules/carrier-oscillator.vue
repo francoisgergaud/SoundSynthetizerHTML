@@ -10,8 +10,8 @@
 
     let frequencyParameter = ref<string>(props.node.getFrequency().toString())
     let waveFormParameter = ref<OscillatorType>(props.node.getType())
-    let gainParameter = ref<number>(props.node.getGain()*100)
-    let muteParameter = ref<boolean>(props.node.isMute())
+    let detuneParameter = ref<number>(props.node.getDetune())
+    //let muteParameter = ref<boolean>(props.node.isMute())
 
 
     function changeFrequency(value: string) {
@@ -24,12 +24,12 @@
         props.node.setType(waveFormParameter.value)
     }
 
-    function changeGain(value: string) {
-        gainParameter.value = +value
-        props.node.setGain(gainParameter.value/100);
+    function changeDetune(value: string) {
+        detuneParameter.value = +value
+        props.node.setDetune(detuneParameter.value);
     }
 
-    function changeMute(value: boolean) {
+    /*function changeMute(value: boolean) {
         muteParameter.value = value
         console.debug(`${props.id} chqnge its mute value to ${muteParameter.value}`)
         if(muteParameter.value) {
@@ -37,7 +37,7 @@
         } else {
             props.node.unmute()
         }
-    }
+    }*/
 
 </script>
 
@@ -58,8 +58,12 @@
                 <option value="triangle" :selected="waveFormParameter === 'triangle' ">Triangle</option>
             </select>
         </div>
-
         <div class="synth-node-control-group">
+            <label :for="`${props.id}-detune`">Detune: </label>
+            <input type="text" :id="`${props.id}-detune`" :value="detuneParameter" @input="(event) => changeDetune((event.currentTarget as HTMLInputElement).value)">
+        </div>
+
+        <!--div class="synth-node-control-group">
             <label :for="`${props.id}-gain`">Volume: </label>
             <input type="range" :id="`${props.id}-gain`" min="0" max="100" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
         </div>
@@ -67,6 +71,6 @@
         <div class="synth-node-control-group">
             <label :for="`${props.id}-mute`">Mute:</label>
             <input type="checkbox" :id="`${props.id}-mute`" :checked="muteParameter" @input="(event) => changeMute((event.currentTarget as HTMLInputElement).checked)">
-        </div>
+        </div-->
     </BaseNodeComponent>
 </template>

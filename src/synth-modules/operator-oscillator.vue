@@ -10,8 +10,7 @@
 
     let ratioParameter = ref<string>(props.node.getRatio().toString())
     let waveFormParameter = ref<OscillatorType>(props.node.getType())
-    let gainParameter = ref<string>((props.node.getGain()).toString())
-    let muteParameter = ref<boolean>(props.node.isMute())
+    let modulationIndexParameter = ref<string>((props.node.getModulationIndex()).toString())
 
 
     function changeRatio(value: string) {
@@ -24,19 +23,11 @@
         props.node.setType(waveFormParameter.value)
     }
 
-    function changeGain(value: string) {
-        gainParameter.value = value
-        props.node.setGain(+gainParameter.value);
+    function changeModulationIndex(value: string) {
+        modulationIndexParameter.value = value
+        props.node.setModulationIndex(+modulationIndexParameter.value);
     }
 
-    function changeMute(value: boolean) {
-        muteParameter.value = value
-        if(muteParameter.value) {
-            props.node.mute()
-        } else {
-            props.node.unmute()
-        }
-    }
 
 </script>
 
@@ -58,14 +49,8 @@
         </div>
 
         <div class="synth-node-control-group">
-            <label :for="`${props.id}-gain`">Amplitude: </label>
-            <!--input type="range" :id="`${props.id}-gain`" min="0" max="5000" :value="gainParameter" step="1" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)" -->
-            <input type="text" :id="`${props.id}-gain-text`" :value="gainParameter" @input="(event) => changeGain((event.currentTarget as HTMLInputElement).value)">
-        </div>
-
-        <div class="synth-node-control-group">
-            <label :for="`${props.id}-mute`">Mute:</label>
-            <input type="checkbox" :id="`${props.id}-mute`" :checked="muteParameter" @input="(event) => changeMute((event.currentTarget as HTMLInputElement).checked)">
+            <label :for="`${props.id}-modulation-index`">Modulation index: </label>
+            <input type="text" :id="`${props.id}-modulation-index`" :value="modulationIndexParameter" @input="(event) => changeModulationIndex((event.currentTarget as HTMLInputElement).value)">
         </div>
     </BaseNodeComponent>
 </template>
