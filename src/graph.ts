@@ -9,8 +9,8 @@ import { Delay } from "./synth-modules/delay-node"
 export class Graph {
 
     nodes: { [nodeName:string]: {node: SynthBaseNode, type: string }}
-    triggerableNodes: { [nodeName:string]: {node: SynthBaseNode & TriggerBaseNode, type: string }}
-    adujustableFrequencyOscillators: { [nodeName:string]: {node: SynthBaseNode & AudibleFrequencyBaseNode }}
+    triggerableNodes: { [nodeName:string]: TriggerBaseNode}
+    adujustableFrequencyOscillators: { [nodeName:string]: AudibleFrequencyBaseNode }
     audioContext: AudioContext
     speaker: Speaker
     
@@ -40,6 +40,7 @@ export class Graph {
         case "filter":
             const filter = new Filter(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": filter, "type" : nodeType}
+
             break
         case "analyzer":
             const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration)
@@ -54,10 +55,10 @@ export class Graph {
         }
         //add the node to be triggered on event
         if(this.nodes[nodeName] && isTriggerableBaseNode(this.nodes[nodeName]["node"])) {
-            this.triggerableNodes[nodeName] = this.nodes[nodeName]
+            this.triggerableNodes[nodeName] = this.nodes[nodeName]["node"]
         }
         if(this.nodes[nodeName] && isFrequencyBasedOnPitchNode(this.nodes[nodeName]["node"])) {
-            this.adujustableFrequencyOscillators[nodeName] = this.nodes[nodeName]
+            this.adujustableFrequencyOscillators[nodeName] = this.nodes[nodeName]["node"]
         }
     }
 
@@ -187,12 +188,12 @@ export class Graph {
         // if frequency must be set on carrier oscillators
         if(frequency != null) {
             for(const nodeName in this.adujustableFrequencyOscillators) {
-                this.adujustableFrequencyOscillators[nodeName]!.node.setFrequency(frequency)
+                this.adujustableFrequencyOscillators[nodeName]!.setFrequency(frequency)
             }
         }
         //trigger the envelops
         for(const nodeName in this.triggerableNodes) {
-            this.triggerableNodes[nodeName]!.node.trigger(enabled)
+            this.triggerableNodes[nodeName]!.trigger(enabled)
         }
     }
 }
