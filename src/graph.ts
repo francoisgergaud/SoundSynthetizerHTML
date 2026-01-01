@@ -1,7 +1,7 @@
 import { Analyzer } from "./synth-modules/analyzer-node"
 import { CarrierOscillator } from "./synth-modules/carrier-oscillator-node"
 import { ADSR } from "./synth-modules/adsr-node"
-import { type AudibleFrequencyBaseNode, Speaker, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
+import { type AudibleFrequencyBaseNode, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
 import { OperatorOscillator } from "./synth-modules/operator-oscillator-node"
 import { Filter } from "./synth-modules/filter-node"
 import { Delay } from "./synth-modules/delay-node"
@@ -12,14 +12,16 @@ export class Graph {
     triggerableNodes: { [nodeName:string]: TriggerBaseNode}
     adujustableFrequencyOscillators: { [nodeName:string]: AudibleFrequencyBaseNode }
     audioContext: AudioContext
-    speaker: Speaker
+    trackOutNode: SynthBaseNode
+    //speaker: Speaker
     
-    constructor(audioContext: AudioContext){
+    constructor(audioContext: AudioContext, trackOutNode: SynthBaseNode){
         this.nodes = {}
         this.triggerableNodes = {}
         this.adujustableFrequencyOscillators = {}
         this.audioContext = audioContext
-        this.speaker = new Speaker(audioContext)
+        this.trackOutNode = trackOutNode
+        //this.speaker = new Speaker(audioContext)
     }
 
     addNode(nodeName: string, nodeType: string, nodeConfiguration: {[parameterName: string]: string | number | boolean | null} | null) {
@@ -40,7 +42,6 @@ export class Graph {
         case "filter":
             const filter = new Filter(nodeName, this.audioContext, nodeConfiguration)
             this.nodes[nodeName] = {"node": filter, "type" : nodeType}
-
             break
         case "analyzer":
             const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration)
@@ -76,9 +77,9 @@ export class Graph {
             }
         }
         //automatically add the speaker node
-        for(const inputName in this.speaker.getInputs()){
-            result["speakers"] = {
-                node: this.speaker,
+        for(const inputName in this.trackOutNode.getInputs()){
+            result["track-out"] = {
+                node: this.trackOutNode,
                 inputName: inputName
             }
         }
@@ -139,9 +140,9 @@ export class Graph {
             result[nodeName]["nodeType"] = synthNodeType
         }
         //manually add the speaker as it is a default node in the graph (it is not in the nodes-list).
-        // it is exported only to hqve its inputs to import it later
-        result["speaker"] = this.speaker.export()
-        result["speaker"]["nodeType"] = "speaker"
+        // it is exported only to have its inputs to import it later
+        result["trackOut"] = this.trackOutNode.export()
+        result["trackOut"]["nodeType"] = "trackOut"
         return result
     }
 
@@ -154,7 +155,7 @@ export class Graph {
             const nodeConfiguration = configuration[nodeName]!
             const nodeType = nodeConfiguration["nodeType"]
             // ignore the speaker: we only use its input to link it after all nodes are created
-            if(nodeType != "speaker"){
+            if(nodeType != "trackOut"){
                 this.addNode(nodeName, nodeType, nodeConfiguration["nodeData"])
             }
             for(const linkedInput of nodeConfiguration.linkedInputs){
@@ -174,9 +175,9 @@ export class Graph {
             const sourceNode = this.nodes[inputLinkConfiguration["sourceNodeName"]]!.node
             const sourceOutputName = inputLinkConfiguration["sourceOutputName"]
             const destinationNodeName = inputLinkConfiguration["nodeName"]
-            //exception if made for 'Speaker' node. This is a default node and does not appear int he graph's nodes
-            let destinationNode: SynthBaseNode = this.speaker
-            if(destinationNodeName != "speaker") {
+            //exception if made for 'track-out' node. This is a default node and does not appear int he graph's nodes
+            let destinationNode: SynthBaseNode = this.trackOutNode
+            if(destinationNodeName != "trackOut") {
                 destinationNode = this.nodes[inputLinkConfiguration["nodeName"]]!.node
             }
             const destinationInputName = inputLinkConfiguration["inputName"]
@@ -185,13 +186,19 @@ export class Graph {
     }
 
     trigger(enabled: boolean, frequency: number | null): void {
-        // if frequency must be set on carrier oscillators
+        /**
+         * trigger and set frequencies on the related nodes in the graph.
+         * Frequency is set on carrier and modulator oscillator (but not LFOs). Trigger is invoked on envelop
+         * and oscillators. For oscillators, their trigger method checks if an envelop is already connected. If it is the case,
+         * their trigger does not do anything as their envelop is executed instead.
+         */
+        // if frequency must be set on oscillators
         if(frequency != null) {
             for(const nodeName in this.adujustableFrequencyOscillators) {
                 this.adujustableFrequencyOscillators[nodeName]!.setFrequency(frequency)
             }
         }
-        //trigger the envelops
+        //trigger the envelops and oscillators without envelop
         for(const nodeName in this.triggerableNodes) {
             this.triggerableNodes[nodeName]!.trigger(enabled)
         }

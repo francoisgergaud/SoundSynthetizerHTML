@@ -13,7 +13,7 @@ export class CarrierOscillator extends SynthBaseNode implements AudibleFrequency
         super(name, audioContext)
         const oscillatorType: OscillatorType = config.oscillatorType as OscillatorType ?? "sine"
         this.gainForEnvelop = audioContext.createGain()
-        this.gainForEnvelop.gain.value = 0;
+        this.gainForEnvelop.gain.value = 1;
         this.oscillator = audioContext.createOscillator()
         this.oscillator.frequency.value = config.frequency as number ?? 0
         this.oscillator.detune.value = config.detune as number ?? 0

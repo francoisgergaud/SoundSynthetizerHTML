@@ -1,4 +1,5 @@
 import { Graph } from "@/graph"
+import { SynthBaseNode } from "@/synth-modules/synthNodes"
 
 export class Sequencer{
     
@@ -16,6 +17,7 @@ export class Sequencer{
     tempo: number
     trackDurationSeconds: number
     _intervalId: number | null
+    speakers: AudioDestinationNode
 
     constructor(name: string, audioContext: AudioContext) {
         this.name = name
@@ -32,6 +34,7 @@ export class Sequencer{
         this.tracks = []
         this.nextNoteTimeSeconds = null
         this._intervalId = null
+        this.speakers = audioContext.destination
     }
 
 
@@ -83,7 +86,7 @@ export class Sequencer{
     }
 
     addTrack(trackName: string, steps: {number:number} | null, graphConfig: {[nodeName:string]: any} | null) {
-        const track =  new Track(this.audioContext, trackName, steps, graphConfig)
+        const track =  new Track(this.audioContext, trackName, steps, graphConfig, this.speakers)
         this.tracks.push(track)
         return track
     }
@@ -128,7 +131,7 @@ export class Track {
     steps: {[stepId:number]: number}
     graph: Graph
 
-    constructor(audioContext: AudioContext, name: string, steps: {number: number} | null, graphConfig: {[nodeName:string]: any} | null) {
+    constructor(audioContext: AudioContext, name: string, steps: {number: number} | null, graphConfig: {[nodeName:string]: any} | null, destination: AudioDestinationNode) {
         this.name = name 
         if(steps) {
             this.steps = steps
@@ -136,7 +139,8 @@ export class Track {
             this.steps = {}
         }
 
-        this.graph = new Graph(audioContext)
+        const trackOutNode = new TrackOutNode(audioContext, destination)
+        this.graph = new Graph(audioContext, trackOutNode)
         if(graphConfig) {
             this.graph.import(graphConfig)
         }
@@ -160,6 +164,31 @@ export class Track {
 
     getGraph(): Graph {
         return this.graph
+    }
+
+}
+
+export class TrackOutNode extends SynthBaseNode {
+
+    gain : GainNode
+
+    constructor(audioContext: AudioContext, destination: AudioDestinationNode){
+        super("track", audioContext)
+        this.gain = audioContext.createGain()
+        //TODO implement channel splitter and left/right pan
+        this.gain.connect(destination)
+    }
+    
+    getInputs(): { [inputName: string]: AudioNode; } {
+        return {"out": this.gain}
+    }
+   
+    getOutputs(): { [outputName: string]: { node: AudioNode; index: number; }; } {
+        return {};
+    }
+
+    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+        return {}
     }
 
 }
