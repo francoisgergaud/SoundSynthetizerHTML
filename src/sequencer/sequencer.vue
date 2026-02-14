@@ -80,6 +80,10 @@
         emit('selectTrack', trackIndex)
     }
 
+    function changeTrackPan(trackIndex: number, value: string) {
+        props.node.getTracks()[trackIndex]!.trackOutNode.setPan(+value)
+    }
+
     const frequencyByKey = fillKeysFrequencyTable()
 
     function manageKeyDown(event : KeyboardEvent) {
@@ -132,8 +136,13 @@
     </div>
     <div class="sequencerTracks" v-show="getTracks.length > 0">
         <div class="tracksDescriptionWrapper">
-            <div v-for="(track, trackIndex) in getTracks" class="trackDescription" @click="changeSelectedTrack(trackIndex)">
+            <div v-for="(track, trackIndex) in getTracks"  >
+                <div @click="changeSelectedTrack(trackIndex)" class="trackDescription">
                 {{track.name}}
+                </div>
+                <div>
+                   L<input type="range" :id="`${track.name}-balance`" min="-1" max="1" :value="track.trackOutNode.getPan()" step="0.1" @input="(event) => changeTrackPan(trackIndex, (event.currentTarget as HTMLInputElement).value)">R
+                </div>
             </div>
         </div -->
         <div class="scrollableParent" ref="scrollableSequencerTracksWrapper" style="overflow: auto;">

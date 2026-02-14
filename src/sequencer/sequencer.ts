@@ -85,8 +85,8 @@ export class Sequencer{
         }
     }
 
-    addTrack(trackName: string, steps: {number:number} | null, graphConfig: {[nodeName:string]: any} | null) {
-        const track =  new Track(this.audioContext, trackName, steps, graphConfig, this.speakers)
+    addTrack(trackName: string, steps: {number:number} | null, trackHeaderConfig: object | null, graphConfig: {[nodeName:string]: any} | null) {
+        const track =  new Track(this.audioContext, trackName, steps, trackHeaderConfig, graphConfig, this.speakers)
         this.tracks.push(track)
         return track
     }
@@ -118,8 +118,8 @@ export class Sequencer{
         this.stepDurationTimeSeconds = 60/(this.tempo * this.numberOfStepsPerBeat)
         this.tracks = []
         if(config?.tracks) {
-            for(const trackConfig of config!.tracks as {name: string, steps: {number:number}, graph: object}[]) {
-                this.addTrack(trackConfig.name, trackConfig.steps, trackConfig.graph)
+            for(const trackConfig of config!.tracks as {name: string, steps: {number:number}, graph: object, trackHeaderConfig: object| null}[]) {
+                this.addTrack(trackConfig.name, trackConfig.steps, trackConfig.trackHeaderConfig, trackConfig.graph)
             }
         }
     }
@@ -130,17 +130,19 @@ export class Track {
     name: string
     steps: {[stepId:number]: number}
     graph: Graph
+    trackOutNode: TrackOutNode
 
-    constructor(audioContext: AudioContext, name: string, steps: {number: number} | null, graphConfig: {[nodeName:string]: any} | null, destination: AudioDestinationNode) {
+    constructor(audioContext: AudioContext, name: string, steps: {number: number} | null, trackHeaderConfig: {[key:string]: any} | null, graphConfig: {[nodeName:string]: any} | null, destination: AudioDestinationNode) {
         this.name = name 
         if(steps) {
             this.steps = steps
         } else {
             this.steps = {}
         }
-
-        const trackOutNode = new TrackOutNode(audioContext, destination)
-        this.graph = new Graph(audioContext, trackOutNode)
+        let trackPan = trackHeaderConfig?.pan
+        this.trackOutNode = new TrackOutNode(audioContext, destination, trackPan)
+        
+        this.graph = new Graph(audioContext, this.trackOutNode)
         if(graphConfig) {
             this.graph.import(graphConfig)
         }
@@ -158,7 +160,10 @@ export class Track {
         return {
             "name": this.name,
             "steps": this.steps,
-            "graph": this.graph.export()
+            "trackHeaderConfig": {
+                "pan": this.trackOutNode.getPan(),
+            },
+            "graph": this.graph.export(),
         }
     }
 
@@ -170,13 +175,17 @@ export class Track {
 
 export class TrackOutNode extends SynthBaseNode {
 
-    gain : GainNode
+    gain: GainNode
+    panNode: StereoPannerNode
+    panValue: number
 
-    constructor(audioContext: AudioContext, destination: AudioDestinationNode){
+    constructor(audioContext: AudioContext, destination: AudioDestinationNode, pan: number | null){
         super("track", audioContext)
+        this.panNode = audioContext.createStereoPanner()
         this.gain = audioContext.createGain()
-        //TODO implement channel splitter and left/right pan
-        this.gain.connect(destination)
+        this.gain.connect(this.panNode)
+        this.panNode.connect(destination)
+        this.panValue = pan ?? 0
     }
     
     getInputs(): { [inputName: string]: AudioNode; } {
@@ -189,6 +198,20 @@ export class TrackOutNode extends SynthBaseNode {
 
     exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
         return {}
+    }
+
+    setPan(value: number) {
+        if(value > 1) {
+            this.panValue = 1
+        }else if(value < -1) {
+            this.panValue = -1
+        }
+        this.panValue = value
+        this.panNode.pan.value = this.panValue
+    }
+
+    getPan(): number {
+        return this.panValue
     }
 
 }

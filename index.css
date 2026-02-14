@@ -183,7 +183,7 @@ input[type="file"] {
 
 .trackDescription {
     line-height: var(--sequencer-step-height);
-    width: 5rem;
+    width: 100%;
 }
 
 .sequencerStep {
