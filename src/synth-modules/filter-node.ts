@@ -1,15 +1,23 @@
-import { SynthBaseNode } from "./synthNodes"
+import { SynthBaseNode, type NodeBaseConfig } from "./synthNodes"
+
+export type FilterConfig = {
+    cutoffFrequency: number;
+    filterType: BiquadFilterType;
+    q: number;
+    filterGain: number;
+    filterDetune: number;
+} & NodeBaseConfig;
 
 export class Filter extends SynthBaseNode {
 
     filter: BiquadFilterNode
         
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}){
-        const cutoffFrequency: number = config.cutoffFrequency as number ?? 440
-        const filterType: BiquadFilterType = config.filterType as BiquadFilterType ?? "lowpass"
-        const q: number = config.q as number ?? 1
-        const filterGain: number = config.filterGain as number ?? 1
-        const filterDetune: number = config.filterDetune as number ?? 1
+    constructor(name: string, audioContext: AudioContext, config : FilterConfig | null){
+        const cutoffFrequency: number = config ? config.cutoffFrequency : 440
+        const filterType: BiquadFilterType = config ? config.filterType : "lowpass"
+        const q: number = config ? config.q : 1
+        const filterGain: number = config ? config.filterGain : 1
+        const filterDetune: number = config? config.filterDetune: 1
         super(name, audioContext);
         this.filter = audioContext.createBiquadFilter();
         this.filter.frequency.value = cutoffFrequency;
@@ -51,7 +59,7 @@ export class Filter extends SynthBaseNode {
     }
 
     setCutoffFrequency(value: number) {
-        this.filter.frequency.setValueAtTime(value, this.audioContext.currentTime);
+        this.filter.frequency.value = value
     }
 
     getQ(): number {
@@ -59,7 +67,7 @@ export class Filter extends SynthBaseNode {
     }
 
     setQ(value: number) {
-        this.filter.Q.setValueAtTime(value, this.audioContext.currentTime);
+        this.filter.Q.value = value
     }
 
     getFilterGain(): number {
@@ -67,24 +75,25 @@ export class Filter extends SynthBaseNode {
     }
 
     setFilterGain(value: number) {
-        this.filter.gain.setValueAtTime(value, this.audioContext.currentTime);
+        this.filter.gain.value = value
     }
 
     getFilterDetune(): number {
-        return this.filter.gain.value
+        return this.filter.detune.value
     }
 
     setFilterDetune(value: number) {
-        this.filter.gain.setValueAtTime(value, this.audioContext.currentTime);
+        this.filter.detune.value = value
     }
 
-    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+    exportNodeData(): FilterConfig {
         return {
-            "filterType": this.getFilterType(),
-            "cutoffFrequency": this.getCutoffFrequency(),
-            "q": this.getQ(),
-            "filterGain": this.getFilterGain(),
-            "filterDetune": this.getFilterDetune()
+            ...super.baseExportNodeData(),
+            filterType: this.getFilterType(),
+            cutoffFrequency: this.getCutoffFrequency(),
+            q: this.getQ(),
+            filterGain: this.getFilterGain(),
+            filterDetune: this.getFilterDetune()
         }
     }
 }

@@ -1,4 +1,4 @@
-import { SynthBaseNode } from "./synthNodes"
+import { SynthBaseNode, type NodeBaseConfig } from "./synthNodes"
 
 export class Analyzer extends SynthBaseNode {
 
@@ -20,8 +20,8 @@ export class Analyzer extends SynthBaseNode {
             "out": {node: this.analyzerNode, index: 0}
         }
     }
-    exportNodeData(): { [isPropertyNamee: string]: string | number | boolean; } {
-        return {}
+    exportNodeData(): NodeBaseConfig {
+        return super.baseExportNodeData()
     }
 
     getFrequencyValues(): Uint8Array {

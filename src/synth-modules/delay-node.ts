@@ -1,13 +1,19 @@
-import { SynthBaseNode } from "./synthNodes";
+import { SynthBaseNode, type NodeBaseConfig } from "./synthNodes";
+
+export type DelayConfig = {
+    delayTime: number;
+} & NodeBaseConfig;
+
+export const MAX_DELAY_TIME = 5
 
 export class Delay extends SynthBaseNode {
 
     delay: DelayNode
 
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}){
-        const delayTime: number = config.delayTime as number ?? 0.25
+    constructor(name: string, audioContext: AudioContext, config : DelayConfig | null){
+        const delayTime: number = config ? config.delayTime : 0.25
         super(name, audioContext);
-        this.delay = audioContext.createDelay();
+        this.delay = audioContext.createDelay(MAX_DELAY_TIME);
         this.delay.delayTime.value = delayTime;
     }
 
@@ -32,12 +38,15 @@ export class Delay extends SynthBaseNode {
     }
 
     setDelayTime(seconds: number) {
-        this.delay.delayTime.setValueAtTime(seconds, this.audioContext.currentTime);
+        // the setValueAtTime on delayTyme a-param does not work (at least in chromium), and I have no idea why....
+        //this.delay.delayTime.setValueAtTime(seconds, this.audioContext.currentTime);
+        this.delay.delayTime.value = seconds
     }
 
-    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
-        const result = super.baseExportNodeData()
-        result["delayTime"] = this.getDelayTime()
-        return result
+    exportNodeData(): DelayConfig {
+        return {
+            ...super.baseExportNodeData(),
+            delayTime: this.getDelayTime(),
+        }
     }
 }

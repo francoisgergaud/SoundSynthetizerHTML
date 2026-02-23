@@ -28,7 +28,7 @@ import type { Delay } from "./synth-modules/delay-node"
 
   function addNode() {
     if(selectedTrack.value) {
-      selectedTrack.value.getGraph().addNode(nodeName.value,nodeType.value, {})
+      selectedTrack.value.getGraph().addNode(nodeName.value,nodeType.value, null)
     }
   }
 
@@ -111,7 +111,7 @@ import type { Delay } from "./synth-modules/delay-node"
     <label class="header">
         sequencer
     </label>
-    <SequencerComponent :node="sequencer" @select-track="(trackIndex: number) => changeSelectedTrack(trackIndex)"/>
+    <SequencerComponent :sequencer="sequencer" @select-track="(trackIndex: number) => changeSelectedTrack(trackIndex)"/>
   </div>  
 
   <div class="control-group">

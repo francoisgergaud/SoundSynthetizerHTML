@@ -1,3 +1,12 @@
+export type NodeBaseConfig = {
+    name: string;
+}
+
+export type NodeConfig = {
+    nodeData: NodeBaseConfig, 
+    linkedInputs:{inputName: string; sourceNodeName: string; sourceOutputName: string}[]
+}
+
 export abstract class SynthBaseNode {
     
     audioContext: AudioContext
@@ -101,13 +110,13 @@ export abstract class SynthBaseNode {
         }
     }
 
-    abstract exportNodeData(): {[isPropertyNamee: string]: string|number|boolean}
+    abstract exportNodeData(): NodeBaseConfig
 
-    baseExportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+    baseExportNodeData(): NodeBaseConfig {
         return {"name": this.name}
     }
 
-    export(): {nodeData: object, linkedInputs:{inputName: string; sourceNodeName: string; sourceOutputName: string}[]} {
+    export(): NodeConfig {
         const linkedInputs = []
         //reminder: inputs format:  {[inputName: string]:  { [sourceNodeName: string]: { [sourceOutputName: string]: {sourceNode: SynthBaseNode} }}}
         for(const inputName of this.linkedInputs.keys()) {

@@ -5,7 +5,7 @@
     import { fillKeysFrequencyTable, keys } from './utils';
 
     const props = defineProps<{
-        node: Sequencer,
+        sequencer: Sequencer,
 
     }>()
     const emit = defineEmits(['selectTrack'])
@@ -20,13 +20,13 @@
     const selectedTrack = ref<Track | null>(null)
 
     const getTracks: ComputedRef<Track[]> = computed(
-        () => props.node.getTracks()
+        () => props.sequencer.getTracks()
     )
 
     let scrollerTimerId: number|null = null
 
     function start(){
-        props.node.start()
+        props.sequencer.start()
         isPlaying.value = true
         //width the wrapping box with the scroller
         let scrollableSequencerTrackWrapperWidth = parseInt(getComputedStyle(scrollableSequencerTracksWrapperHTMLElement.value!).getPropertyValue('width'));
@@ -57,12 +57,12 @@
                     //set the scroller to this position
                     scrollableSequencerTracksWrapperHTMLElement.value!.scrollLeft = currentPosition
                 }
-            }, 50, Date.now(), props.node.trackDurationSeconds*1000, scrollableSequencerTrackWrapperWidth/sequencerTrackWrapperWidth, sequencerTrackWrapperWidth);
+            }, 50, Date.now(), props.sequencer.trackDurationSeconds*1000, scrollableSequencerTrackWrapperWidth/sequencerTrackWrapperWidth, sequencerTrackWrapperWidth);
         }
     }
 
     function stop(){
-        props.node.stop()
+        props.sequencer.stop()
         isPlaying.value = false
         if(scrollerTimerId) {
             clearInterval(scrollerTimerId)
@@ -72,16 +72,16 @@
     }
 
     function addTrack(){
-        props.node.addTrack(newTrackName.value, null, null)
+        props.sequencer.addTrack(newTrackName.value, null)
     }
 
     function changeSelectedTrack(trackIndex: number) {
-        selectedTrack.value = props.node.getTracks()[trackIndex]!
+        selectedTrack.value = props.sequencer.getTracks()[trackIndex]!
         emit('selectTrack', trackIndex)
     }
 
     function changeTrackPan(trackIndex: number, value: string) {
-        props.node.getTracks()[trackIndex]!.trackOutNode.setPan(+value)
+        props.sequencer.getTracks()[trackIndex]!.trackOutNode.setPan(+value)
     }
 
     const frequencyByKey = fillKeysFrequencyTable()
@@ -147,7 +147,7 @@
         </div -->
         <div class="scrollableParent" ref="scrollableSequencerTracksWrapper" style="overflow: auto;">
             <div class="sequencerTracksStepWrapper" ref="sequencerTracksWrapper">
-                <div v-for="stepNumber in props.node.numberOfStep" :class="['sequencerStep', {'active': props.node.currentStep == stepNumber}]">
+                <div v-for="stepNumber in props.sequencer.numberOfStep" :class="['sequencerStep', {'active': props.sequencer.currentStep == stepNumber}]">
                     <SequencerStepComponent v-for="track in getTracks" :step-number="stepNumber - 1" :track="track"/>
                 </div>
             </div>

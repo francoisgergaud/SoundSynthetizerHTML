@@ -1,27 +1,35 @@
-import { SynthBaseNode, type AudibleFrequencyBaseNode, type TriggerBaseNode } from "./synthNodes"
+import { SynthBaseNode, type AudibleFrequencyBaseNode, type NodeBaseConfig, type TriggerBaseNode } from "./synthNodes"
+
+export type CarrierOscillatorConfig = {
+    oscillatorType: OscillatorType;
+    detune: number;
+} & NodeBaseConfig;
 
 export class CarrierOscillator extends SynthBaseNode implements AudibleFrequencyBaseNode, TriggerBaseNode{
     
     oscillator: OscillatorNode
-    gainForEnvelop: GainNode
-    isFrequencyBasedOnPitch: boolean
+    envelopGain: GainNode
+    // is the frequency controlled by events (note from the user or sequencer)?
+    frequencyBasedOnPitch: boolean
     static readonly ENVELOP_INPUT_NAME: string = "envelop"
-    // is the "envelop" input controled by another node?
-    isEnvelopInputConnected: boolean
+    // is the "envelop" input controled by another node/ connected to another node?
+    envelopInputConnected: boolean
 
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
+    
+
+    constructor(name: string, audioContext: AudioContext, config : CarrierOscillatorConfig | null) {
         super(name, audioContext)
-        const oscillatorType: OscillatorType = config.oscillatorType as OscillatorType ?? "sine"
-        this.gainForEnvelop = audioContext.createGain()
-        this.gainForEnvelop.gain.value = 1;
+        const oscillatorType: OscillatorType = config ? config.oscillatorType : "sine"
+        this.envelopGain = audioContext.createGain()
+        this.envelopGain.gain.value = 1;
         this.oscillator = audioContext.createOscillator()
-        this.oscillator.frequency.value = config.frequency as number ?? 0
-        this.oscillator.detune.value = config.detune as number ?? 0
+        this.oscillator.frequency.value = 0
+        this.oscillator.detune.value = config ? config.detune : 0
         this.oscillator.type = oscillatorType
-        this.oscillator.connect(this.gainForEnvelop)
+        this.oscillator.connect(this.envelopGain)
         this.oscillator.start()
-        this.isFrequencyBasedOnPitch = true
-        this.isEnvelopInputConnected = false
+        this.frequencyBasedOnPitch = true
+        this.envelopInputConnected = false
     }
 
     getFrequency(): number {
@@ -29,7 +37,7 @@ export class CarrierOscillator extends SynthBaseNode implements AudibleFrequency
     }
 
     setFrequency(value: number) {
-        this.oscillator.frequency.setValueAtTime(value, this.audioContext.currentTime)
+        this.oscillator.frequency.value = value
     }
 
     getDetune(): number {
@@ -37,7 +45,7 @@ export class CarrierOscillator extends SynthBaseNode implements AudibleFrequency
     }
 
     setDetune(value: number) {
-       this.oscillator.detune.setValueAtTime(value, this.audioContext.currentTime)
+       this.oscillator.detune.value = value
     }
 
     getInputs() : {[inputName:string]: AudioParam | AudioNode}{
@@ -45,14 +53,14 @@ export class CarrierOscillator extends SynthBaseNode implements AudibleFrequency
             "frequency": this.oscillator.frequency,
             "detune": this.oscillator.detune,
         }
-        result[CarrierOscillator.ENVELOP_INPUT_NAME]=this.gainForEnvelop.gain
+        result[CarrierOscillator.ENVELOP_INPUT_NAME]=this.envelopGain.gain
         return result
     }
 
     getOutputs(): { [outputName: string]: { node: AudioNode; index: number } } {
         return {
             "output": {
-                "node": this.gainForEnvelop,
+                "node": this.envelopGain,
                 "index": 0
             }
         }
@@ -66,22 +74,22 @@ export class CarrierOscillator extends SynthBaseNode implements AudibleFrequency
         this.oscillator.type=value
     }
 
-    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
+    exportNodeData(): CarrierOscillatorConfig {
         return {
-            "frequency": this.getFrequency(),
-            "oscillatorType": this.getType(),
-            "detune": this.getDetune()
+            ...super.baseExportNodeData(),
+            oscillatorType: this.getType(),
+            detune: this.getDetune()
         }
     }
 
     linkInput(sourceNode: SynthBaseNode, sourceOutputName:string, inputName: string){
         super.linkInput(sourceNode, sourceOutputName, inputName)
-        this.isEnvelopInputConnected = this.linkedInputs.has(CarrierOscillator.ENVELOP_INPUT_NAME)
+        this.envelopInputConnected = this.linkedInputs.has(CarrierOscillator.ENVELOP_INPUT_NAME)
     }
 
     unlinkInput(sourceNode: SynthBaseNode, sourceOutputName:string, inputName: string){
         super.unlinkInput(sourceNode, sourceOutputName, inputName)
-        this.isEnvelopInputConnected = this.linkedInputs.has(CarrierOscillator.ENVELOP_INPUT_NAME)
+        this.envelopInputConnected = this.linkedInputs.has(CarrierOscillator.ENVELOP_INPUT_NAME)
     }
 
     /**
@@ -92,8 +100,8 @@ export class CarrierOscillator extends SynthBaseNode implements AudibleFrequency
      */
     trigger(enabled: boolean) {
         console.debug(`${this.name}: trigger ${enabled}`)
-        if(! this.isEnvelopInputConnected) {
-            this.gainForEnvelop.gain.setTargetAtTime(enabled ? 1: 0, this.audioContext.currentTime, 0.015)
+        if(! this.envelopInputConnected) {
+            this.envelopGain.gain.setTargetAtTime(enabled ? 1: 0, this.audioContext.currentTime, 0.015)
         }
     }
 }

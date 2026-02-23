@@ -1,36 +1,43 @@
-import { SynthBaseNode, type AudibleFrequencyBaseNode, type TriggerBaseNode } from "./synthNodes"
+import { SynthBaseNode, type AudibleFrequencyBaseNode, type NodeBaseConfig, type TriggerBaseNode } from "./synthNodes"
 
+export type OperatorOscillatorConfig = {
+    oscillatorType: OscillatorType;
+    // modulation's index is the amplitude of the modulqtion
+    modulationIndex: number;
+    // ratio is the operator frequency ratio compared to the original frequency
+    ratio: number;
+} & NodeBaseConfig;
 
 export class OperatorOscillator extends SynthBaseNode implements AudibleFrequencyBaseNode, TriggerBaseNode {
     oscillator: OscillatorNode
     gainForModulationIndex: GainNode
-    gainForEnvelop: GainNode
-    isFrequencyBasedOnPitch: boolean
-    isEnvelopInputConnected: boolean
+    envelopGain: GainNode
+    frequencyBasedOnPitch: boolean
+    envelopInputConnected: boolean
     ratio: number
     static readonly ENVELOP_INPUT_NAME: string = "envelop"
 
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
+    constructor(name: string, audioContext: AudioContext, config: OperatorOscillatorConfig | null) {
         super(name, audioContext)
-        const oscillatorType: OscillatorType = config.oscillatorType as OscillatorType ?? "sine"
-        this.gainForEnvelop = audioContext.createGain()
+        const oscillatorType: OscillatorType = config ? config.oscillatorType : "sine"
+        this.envelopGain = audioContext.createGain()
         this.gainForModulationIndex = audioContext.createGain()
-        this.gainForModulationIndex.gain.value = config.modulationIndex as number ?? 1;
-        this.gainForEnvelop.gain.value = 1;
+        this.gainForModulationIndex.gain.value = config ? config.modulationIndex : 1;
+        this.envelopGain.gain.value = 1;
         this.oscillator = audioContext.createOscillator()
-        this.oscillator.frequency.value = config.frequency as number ?? 0
+        this.oscillator.frequency.value = 0
         this.oscillator.type = oscillatorType
-        this.oscillator.connect(this.gainForEnvelop)
+        this.oscillator.connect(this.envelopGain)
         this.oscillator.start()
-        this.isFrequencyBasedOnPitch = true
-        this.isEnvelopInputConnected = false
-        this.ratio = 1
+        this.frequencyBasedOnPitch = true
+        this.envelopInputConnected = false
+        this.ratio = config? config.ratio : 1
     }
 
     setFrequency(value: number) {
         const frequency = value * this.ratio
         console.debug(`${this.name}: change frequency to ${frequency}`)
-        this.oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime)
+        this.oscillator.frequency.value = frequency
     }
 
     getRatio(): number {
@@ -42,7 +49,7 @@ export class OperatorOscillator extends SynthBaseNode implements AudibleFrequenc
     }
 
     setModulationIndex(value: number) {
-        this.gainForModulationIndex.gain.setValueAtTime(this.audioContext.currentTime, value)
+        this.gainForModulationIndex.gain.value = value
     }
 
     getModulationIndex(): number {
@@ -53,14 +60,14 @@ export class OperatorOscillator extends SynthBaseNode implements AudibleFrequenc
         const result: {[inputName:string]: AudioParam | AudioNode} = {
             "frequency": this.oscillator.frequency
         }
-        result[OperatorOscillator.ENVELOP_INPUT_NAME]=this.gainForEnvelop.gain
+        result[OperatorOscillator.ENVELOP_INPUT_NAME]=this.envelopGain.gain
         return result
     }
 
     getOutputs(): { [outputName: string]: { node: AudioNode; index: number } } {
         return {
             "output": {
-                "node": this.gainForEnvelop,
+                "node": this.envelopGain,
                 "index": 0
             }
         }
@@ -74,23 +81,35 @@ export class OperatorOscillator extends SynthBaseNode implements AudibleFrequenc
         this.oscillator.type=value
     }
 
-    exportNodeData(): {[isPropertyNamee: string]: string|number|boolean} {
-        const result = super.baseExportNodeData()
-        result["frequency"] = this.oscillator.frequency.value
-        result["oscillatorType"] = this.getType()
-        result["ratio"] = this.getRatio()
-        result["modulationIndex"] = this.getModulationIndex()
-        return result
+    exportNodeData(): OperatorOscillatorConfig {
+        return {
+            ...super.baseExportNodeData(),
+            oscillatorType: this.getType(),
+            ratio: this.getRatio(),
+            modulationIndex: this.getModulationIndex()
+        }
     }
 
+    /**
+     * link the input and reference the envelop-trigger if ADSR is connected
+     * @param sourceNode the source-node to connect to this node
+     * @param sourceOutputName the source-node's output to connect
+     * @param inputName the node's input to be connected
+     */
     linkInput(sourceNode: SynthBaseNode, sourceOutputName:string, inputName: string){
         super.linkInput(sourceNode, sourceOutputName, inputName)
-        this.isEnvelopInputConnected = this.linkedInputs.has(OperatorOscillator.ENVELOP_INPUT_NAME)
+        this.envelopInputConnected = this.linkedInputs.has(OperatorOscillator.ENVELOP_INPUT_NAME)
     }
 
+    /**
+     * unlink the input and unreference the envelop-trigger if ADSR is connected 
+     * @param sourceNode the source-node to be disconnected from this node
+     * @param sourceOutputName the source-node's output to disconnect
+     * @param inputName the node's input to be disconnected
+     */
     unlinkInput(sourceNode: SynthBaseNode, sourceOutputName:string, inputName: string){
         super.unlinkInput(sourceNode, sourceOutputName, inputName)
-        this.isEnvelopInputConnected = this.linkedInputs.has(OperatorOscillator.ENVELOP_INPUT_NAME)
+        this.envelopInputConnected = this.linkedInputs.has(OperatorOscillator.ENVELOP_INPUT_NAME)
     }
 
     /**
@@ -101,8 +120,8 @@ export class OperatorOscillator extends SynthBaseNode implements AudibleFrequenc
      */
     trigger(enabled: boolean) {
         console.debug(`${this.name}: trigger ${enabled}`)
-        if(! this.isEnvelopInputConnected) {
-            this.gainForEnvelop.gain.setValueAtTime(this.audioContext.currentTime, enabled ? 1 : 0)
+        if(! this.envelopInputConnected) {
+            this.envelopGain.gain.value = enabled ? 1 : 0
         }
     }
 }

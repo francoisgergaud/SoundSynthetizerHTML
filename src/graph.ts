@@ -1,10 +1,13 @@
 import { Analyzer } from "./synth-modules/analyzer-node"
-import { CarrierOscillator } from "./synth-modules/carrier-oscillator-node"
-import { ADSR } from "./synth-modules/adsr-node"
-import { type AudibleFrequencyBaseNode, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
-import { OperatorOscillator } from "./synth-modules/operator-oscillator-node"
-import { Filter } from "./synth-modules/filter-node"
-import { Delay } from "./synth-modules/delay-node"
+import { CarrierOscillator, type CarrierOscillatorConfig } from "./synth-modules/carrier-oscillator-node"
+import { ADSR, type ADSRConfig } from "./synth-modules/adsr-node"
+import { type AudibleFrequencyBaseNode, type NodeBaseConfig, type NodeConfig, type SynthBaseNode, type TriggerBaseNode, isFrequencyBasedOnPitchNode, isTriggerableBaseNode } from "./synth-modules/synthNodes"
+import { OperatorOscillator, type OperatorOscillatorConfig } from "./synth-modules/operator-oscillator-node"
+import { Filter, type FilterConfig } from "./synth-modules/filter-node"
+import { Delay, type DelayConfig } from "./synth-modules/delay-node"
+
+export type GraphConfig = {[nodeName:string]: {nodeType: string} & NodeConfig}
+
 
 export class Graph {
 
@@ -13,7 +16,6 @@ export class Graph {
     adujustableFrequencyOscillators: { [nodeName:string]: AudibleFrequencyBaseNode }
     audioContext: AudioContext
     trackOutNode: SynthBaseNode
-    //speaker: Speaker
     
     constructor(audioContext: AudioContext, trackOutNode: SynthBaseNode){
         this.nodes = {}
@@ -21,34 +23,32 @@ export class Graph {
         this.adujustableFrequencyOscillators = {}
         this.audioContext = audioContext
         this.trackOutNode = trackOutNode
-        //this.speaker = new Speaker(audioContext)
     }
 
-    addNode(nodeName: string, nodeType: string, nodeConfiguration: {[parameterName: string]: string | number | boolean | null} | null) {
-        nodeConfiguration = nodeConfiguration ?? {}
+    addNode(nodeName: string, nodeType: string, nodeConfiguration: NodeBaseConfig | null) {
         switch(nodeType) {
         case "carrier-oscillator":
-            const vco = new CarrierOscillator(nodeName, this.audioContext, nodeConfiguration)
+            const vco = new CarrierOscillator(nodeName, this.audioContext, nodeConfiguration as CarrierOscillatorConfig | null)
             this.nodes[nodeName] = {"node": vco, "type" : nodeType}
             break
         case "operator-oscillator":
-            const modulator = new OperatorOscillator(nodeName, this.audioContext, nodeConfiguration)
+            const modulator = new OperatorOscillator(nodeName, this.audioContext, nodeConfiguration as OperatorOscillatorConfig | null)
             this.nodes[nodeName] = {"node": modulator, "type" : nodeType}
             break
         case "delay":
-            const delay = new Delay(nodeName, this.audioContext, nodeConfiguration)
+            const delay = new Delay(nodeName, this.audioContext, nodeConfiguration as DelayConfig | null)
             this.nodes[nodeName] = {"node": delay, "type" : nodeType}
             break
         case "filter":
-            const filter = new Filter(nodeName, this.audioContext, nodeConfiguration)
+            const filter = new Filter(nodeName, this.audioContext, nodeConfiguration as FilterConfig | null)
             this.nodes[nodeName] = {"node": filter, "type" : nodeType}
             break
         case "analyzer":
-            const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration)
+            const analyzer = new Analyzer(nodeName, this.audioContext, nodeConfiguration as NodeBaseConfig | null)
             this.nodes[nodeName] = {"node": analyzer, "type" : nodeType}
             break
         case "adsr":
-            const adsr = new ADSR(nodeName, this.audioContext, nodeConfiguration)
+            const adsr = new ADSR(nodeName, this.audioContext, nodeConfiguration as ADSRConfig | null)
             this.nodes[nodeName] = {"node": adsr, "type" : "adsr"}
             break
         default:
@@ -130,23 +130,28 @@ export class Graph {
         destinationNode.unlinkInput(sourceNode, sourceOutputName, destinationInputName)
     }
 
-    export(): {[nodeName:string]: any} {
-        const result: {[nodeName:string]:any} = {}
+    export(): GraphConfig {
+        const result: GraphConfig = {}
         for(const nodeName in this.nodes) {
             const synthNode = this.nodes[nodeName]!.node
             const synthNodeType = this.nodes[nodeName]!.type
-            result[nodeName] = synthNode.export()
+            result[nodeName] = {
+                ...synthNode.export(),
+                nodeType: synthNodeType
+            }
             //add the node-type: it is a property of the node reauired only in the context of a graph.
             result[nodeName]["nodeType"] = synthNodeType
         }
         //manually add the speaker as it is a default node in the graph (it is not in the nodes-list).
         // it is exported only to have its inputs to import it later
-        result["trackOut"] = this.trackOutNode.export()
-        result["trackOut"]["nodeType"] = "trackOut"
+        result["trackOut"] = {
+            ...this.trackOutNode.export(),
+            nodeType : "trackOut"
+        }
         return result
     }
 
-    import(configuration: {[nodeMame: string]: {linkedInputs: {inputName:string, sourceNodeName:string, sourceOutputName:string}[], nodeType: string, nodeData: {[propertyName:string]: string|number|boolean} } }) {
+    import(configuration: GraphConfig) {
         //reset the nodes
         this.nodes = {}
         //add the nodes from config
@@ -156,7 +161,7 @@ export class Graph {
             const nodeType = nodeConfiguration["nodeType"]
             // ignore the speaker: we only use its input to link it after all nodes are created
             if(nodeType != "trackOut"){
-                this.addNode(nodeName, nodeType, nodeConfiguration["nodeData"])
+                this.addNode(nodeName, nodeType, nodeConfiguration["nodeData"] as NodeBaseConfig)
             }
             for(const linkedInput of nodeConfiguration.linkedInputs){
                 inputLinksConfiguration.push(

@@ -1,4 +1,11 @@
-import { SynthBaseNode, type TriggerBaseNode } from "./synthNodes"
+import { SynthBaseNode, type NodeBaseConfig, type TriggerBaseNode } from "./synthNodes"
+
+export type ADSRConfig = {
+    attack: number;
+    decay: number;
+    sustain: number;
+    release: number;
+} & NodeBaseConfig;
 
 export class ADSR extends SynthBaseNode implements TriggerBaseNode {
 
@@ -10,14 +17,14 @@ export class ADSR extends SynthBaseNode implements TriggerBaseNode {
     sustain: number
     release: number
 
-    constructor(name: string, audioContext: AudioContext, config : {[parameterName: string]: string | number | boolean | null}) {
+    constructor(name: string, audioContext: AudioContext, config : ADSRConfig | null) {
         super(name, audioContext)
         this.name = name
         this.audioContext = audioContext
-        this.attack = config?.attack as number ?? 0.1
-        this.decay = config?.decay as number ?? 0.1
-        this.sustain = config?.sustain as number ?? 0.5
-        this.release = config?.release as number ?? 0.1
+        this.attack = config ? config.attack : 0.1
+        this.decay = config ? config.decay : 0.1
+        this.sustain = config ? config.sustain : 0.5
+        this.release = config ? config.release: 0.1
         this.constantSourceNode = new ConstantSourceNode(this.audioContext, {offset:0})
         this.constantSourceNode.start();
     }
@@ -33,12 +40,13 @@ export class ADSR extends SynthBaseNode implements TriggerBaseNode {
             "out": {node: this.constantSourceNode, index: 0}
         }
     }
-    exportNodeData(): { [isPropertyNamee: string]: string | number | boolean; } {
+    exportNodeData(): ADSRConfig {
         return {
-            "attack": this.attack,
-            "decay": this.decay,
-            "sustain": this.sustain,
-            "release": this.release
+            ...super.baseExportNodeData(),
+            attack: this.attack,
+            decay: this.decay,
+            sustain: this.sustain,
+            release: this.release
         }
     }
 
