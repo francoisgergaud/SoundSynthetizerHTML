@@ -158,5 +158,5 @@ export function isFrequencyBasedOnPitchNode(object: any): object is AudibleFrequ
     //typescript is compile time. Runtime does not know about interface. We must check if the
     //function exists on the object. We actually set frequencies on carrier AND operator oscillators
     //(operator oscillators apply a ratio on this frequency)
-    return 'isFrequencyBasedOnPitch' in object;
+    return 'frequencyBasedOnPitch' in object;
 }
