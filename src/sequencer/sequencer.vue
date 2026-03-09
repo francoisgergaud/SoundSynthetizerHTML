@@ -120,7 +120,7 @@
     window.addEventListener('keyup', (e) => {
         if(!isKeyboardPlaying.value) { return }
         if(selectedTrack.value) {
-        selectedTrack.value.getGraph().trigger(false, null)
+            selectedTrack.value.getGraph().trigger(false, null)
         }
     });
 
@@ -135,22 +135,25 @@
         </div>
     </div>
     <div class="sequencerTracks" v-show="getTracks.length > 0">
-        <div class="tracksDescriptionWrapper">
-            <div v-for="(track, trackIndex) in getTracks"  >
-                <div @click="changeSelectedTrack(trackIndex)" class="trackDescription">
-                {{track.name}}
-                </div>
-                <div>
-                   L<input type="range" :id="`${track.name}-balance`" min="-1" max="1" :value="track.trackOutNode.getPan()" step="0.1" @input="(event) => changeTrackPan(trackIndex, (event.currentTarget as HTMLInputElement).value)">R
-                </div>
-            </div>
-        </div -->
         <div class="scrollableParent" ref="scrollableSequencerTracksWrapper" style="overflow: auto;">
-            <div class="sequencerTracksStepWrapper" ref="sequencerTracksWrapper">
-                <div v-for="stepNumber in props.sequencer.numberOfStep" :class="['sequencerStep', {'active': props.sequencer.currentStep == stepNumber}]">
-                    <SequencerStepComponent v-for="track in getTracks" :step-number="stepNumber - 1" :track="track"/>
-                </div>
-            </div>
+            <table ref="sequencerTracksWrapper">
+                <tbody>
+                    <tr v-for="(track, trackIndex) in getTracks" class="sequencerTrack">
+                        <td class="trackHeader">
+                            <div @click="changeSelectedTrack(trackIndex)" class="trackDescription">
+                                {{track.name}}
+                            </div>
+                            <div class="trackBalance">
+                                L <input type="range" :id="`${track.name}-balance`" min="-1" max="1" :value="track.trackOutNode.getPan()" step="0.1" @input="(event) => changeTrackPan(trackIndex, (event.currentTarget as HTMLInputElement).value)"> R
+                            </div>
+                        </td>
+                        <td v-for="stepNumber in props.sequencer.numberOfStep" :class="['sequencerStep', {'active': props.sequencer.currentStep == stepNumber}]">
+                            <SequencerStepComponent :step-number="stepNumber - 1" :track="track"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
         </div>
     </div>
     <div class="sequencerControlsWrapper">

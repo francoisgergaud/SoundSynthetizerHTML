@@ -1,6 +1,6 @@
 :root {
   --sequencer-step-width: 40px;
-  --sequencer-step-height: 40px;
+  --sequencer-step-height: 80px;
 }
 
 body {
@@ -168,7 +168,7 @@ input[type="file"] {
 }
 
 .sequencerTracks {
-     display: flex;
+    /* display: flex;*/
 }
 
 .sequencerTracksStepWrapper {
@@ -181,22 +181,19 @@ input[type="file"] {
     background-color: #232323;
 }
 
-.trackDescription {
-    line-height: var(--sequencer-step-height);
-    width: 100%;
-}
-
 .sequencerStep {
     transition: 50ms linear;
-    display: block;
     width: var(--sequencer-step-width);
-    line-height: var(--sequencer-step-height);
     text-align: center;
     &.active {
         background-color: #f5ab00;
         color: #222222;
     };
     background-color: #333;
+}
+
+.trackStep {
+    width: 5rem;
 }
 
 .trackStep input {
@@ -234,4 +231,27 @@ input[type="file"] {
 
 .sequencerControls {
     margin: 0 auto;
+}
+
+.trackHeader {
+    position: sticky;
+    display: block;
+    left: 0;
+    top: auto;
+    border-top-width: 1px;
+    background-color: #2a2823;
+}
+
+.trackBalance {
+    display: inline-flex;
+    padding: 0;;
+}
+
+.trackBalance input {
+    padding: 0;;
+}
+
+.scrollableParent {
+    overflow-x: scroll;
+    overflow-y: visible;
 }

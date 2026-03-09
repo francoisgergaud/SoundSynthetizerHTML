@@ -43,10 +43,10 @@
 
 <template>
     <div class="trackStep">
-        <div @click="showEditMode" :style="{'display': !editMode ? 'block': 'none' }">
+        <div @click="showEditMode" :style="{'display': !editMode ? 'inline': 'none' }">
             {{stepValue}}
         </div>
-         <div ref="trackStepInputDiv" :style="{'display': editMode ? 'block': 'none' }">
+         <div ref="trackStepInputDiv" :style="{'display': editMode ? 'inline': 'none' }">
             <input ref="trackStepInput" type="text" v-model="stepValue" @blur="saveStepValue"/>
         </div>
     </div>
