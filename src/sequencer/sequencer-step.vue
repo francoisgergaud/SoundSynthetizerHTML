@@ -1,24 +1,24 @@
 <script setup lang="ts">
-    import { onMounted, ref, useTemplateRef } from 'vue';
-    import type { Track } from '../sequencer/sequencer';
+    import { computed, onMounted, ref, useTemplateRef, watch, type ComputedRef } from 'vue';
 
     const props = defineProps<{
-        track: Track,
-        stepNumber: number
+        stepValue: number | undefined
     }>()
+
+    const emit = defineEmits(['changeStepValue'])
 
     const trackStepInputHTMLElement = useTemplateRef('trackStepInput')
     const trackStepInputDivHTMLElement = useTemplateRef('trackStepInputDiv')
 
     let editMode = ref<boolean>(false)
-    let stepValue = ref<number>(props.track.getStepValue(props.stepNumber))
+    let stepValue = ref<number|undefined>(props.stepValue)
 
     function showEditMode() {
         editMode.value = true        
     }
 
     function saveStepValue() {
-        props.track.setStepValue(props.stepNumber,stepValue.value)
+        emit('changeStepValue', stepValue.value)
         editMode.value = false
     }
 
@@ -30,7 +30,7 @@
             // div with there inputs qre displayed on eqch click and their "blur" event is not executed when displaying another track-step's input-div
             const observer = new MutationObserver(
                 (mutations) => {
-                    if ((mutations[0]!.target as HTMLElement).style.display == "block")
+                    if ((mutations[0]!.target as HTMLElement).style.display == "inline")
                         trackStepInputHTMLElement.value?.focus()
                 }, 
             );
@@ -44,10 +44,10 @@
 <template>
     <div class="trackStep">
         <div @click="showEditMode" :style="{'display': !editMode ? 'inline': 'none' }">
-            {{stepValue}}
+            {{stepValue?.toFixed(0) || 0}}
         </div>
          <div ref="trackStepInputDiv" :style="{'display': editMode ? 'inline': 'none' }">
-            <input ref="trackStepInput" type="text" v-model="stepValue" @blur="saveStepValue"/>
+            <input ref="trackStepInput" type="text" v-model.number="stepValue" @blur="saveStepValue"/>
         </div>
     </div>
 </template>

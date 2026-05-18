@@ -48,17 +48,17 @@ export class Sequencer{
     scheduleNextStep() {
         console.debug(`${this.name}: play step ${this.currentStep} at ${this.nextNoteTimeSeconds}`)
         for(const track of this.tracks){
-            console.debug(`track: ${track.name}`)
+            //console.debug(`track: ${track.name}`)
             const previousStepValue = track.getStepValue(this.previousStep)
             const currentStepvalue = track.getStepValue(this.currentStep)
-            console.debug(`${this.name}: ${track.name} value ${currentStepvalue}`)
+            //console.debug(`${this.name}: ${track.name} value ${currentStepvalue}`)
             if(previousStepValue == 0) {
                 if(currentStepvalue != 0) {
                     track.getGraph().trigger(true, currentStepvalue)
                 }
             } else {
                 if(currentStepvalue == 0) {
-                    console.debug(`track ${track.name}: release`)
+                    //console.debug(`track ${track.name}: release`)
                     track.getGraph().trigger(false, null)
                 } else {
                     track.getGraph().trigger(true, currentStepvalue)
@@ -116,26 +116,28 @@ export class Sequencer{
         return result;
     }
 
-    import(config : SequencerConfig): void {
+    import(config : SequencerConfig): Sequencer {
         this.stop()
-        this.numberOfBeat = config?.numberOfBeat as number
-        this.numberOfStepsPerBeat = config?.numberOfStepsPerBeat as number
-        this.tempo = config?.tempo as number
-        this.trackDurationSeconds = this.numberOfBeat * (60/this.tempo)
-        this.numberOfStep = this.numberOfBeat * this.numberOfStepsPerBeat
-        this.stepDurationTimeSeconds = 60/(this.tempo * this.numberOfStepsPerBeat)
-        this.tracks = []
+        let sequencer = new Sequencer("sequencer name", this.audioContext)
+        sequencer.numberOfBeat = config?.numberOfBeat as number
+        sequencer.numberOfStepsPerBeat = config?.numberOfStepsPerBeat as number
+        sequencer.tempo = config?.tempo as number
+        sequencer.trackDurationSeconds = sequencer.numberOfBeat * (60/sequencer.tempo)
+        sequencer.numberOfStep = sequencer.numberOfBeat * sequencer.numberOfStepsPerBeat
+        sequencer.stepDurationTimeSeconds = 60/(sequencer.tempo * sequencer.numberOfStepsPerBeat)
+        sequencer.tracks = []
         if(config) {
             for(const trackConfig of config.tracks) {
-                this.addTrack(trackConfig.name, trackConfig)
+                sequencer.addTrack(trackConfig.name, trackConfig)
             }
         }
+        return sequencer
     }
 }
 
 export type TrackConfig = {
     name: string,
-    steps: {[stepId:number]: number},
+    steps: {[stepId:number]: number| undefined},
     trackHeaderConfig: TrackOutConfig,
     graph: GraphConfig
 }
@@ -143,7 +145,7 @@ export type TrackConfig = {
 export class Track {
 
     name: string
-    steps: {[stepId:number]: number}
+    steps: {[stepId:number]: number|undefined}
     graph: Graph
     trackOutNode: TrackOutNode
 
@@ -162,11 +164,12 @@ export class Track {
         }
     }
 
+
     getStepValue(step: number): number {
         return this.steps[step] || 0
     }
 
-    setStepValue(step: number, value: number) {
+    setStepValue(step: number, value: number | undefined) {
         this.steps[step] = value
     }
 

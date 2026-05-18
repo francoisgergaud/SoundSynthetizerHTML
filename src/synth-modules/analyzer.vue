@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import { Analyzer } from './analyzer-node';
-    import { useTemplateRef, ref } from 'vue'
+    import { useTemplateRef, ref, onUnmounted } from 'vue'
     import BaseNodeComponent from './base-node-component.vue';
 
     const props = defineProps<{
@@ -66,6 +66,8 @@
     }
 
     let timerId = setInterval(() => requestAnimationFrame(draw), 50)
+
+    onUnmounted(() => clearInterval(timerId))
 
 </script>
 

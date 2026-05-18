@@ -101,7 +101,8 @@ export class CarrierOscillator extends SynthBaseNode implements AudibleFrequency
     trigger(enabled: boolean) {
         console.debug(`${this.name}: trigger ${enabled}`)
         if(! this.envelopInputConnected) {
-            this.envelopGain.gain.setTargetAtTime(enabled ? 1: 0, this.audioContext.currentTime, 0.015)
+            console.debug("oscillator default envelop triggered")
+            this.envelopGain.gain.setTargetAtTime(enabled ? 1: 0, this.audioContext.currentTime, 0.02)
         }
     }
 }
