@@ -140,7 +140,6 @@ export abstract class SynthBaseNode {
 }
 
 export interface TriggerBaseNode{
-    
     trigger(enabled: boolean): void
 }
 

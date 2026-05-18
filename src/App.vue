@@ -61,7 +61,9 @@ import type { Delay } from "./synth-modules/delay-node"
         let reader = new FileReader();
         reader.onload = function (event) {
           const fileContent = JSON.parse(event.target!.result! as string); //UTF-8 content should be automatically decoded as string by browser (no array-buffer)
-          sequencer.value.import(fileContent)
+          //console.debug(`load content ${fileContent}`)
+          sequencer.value = sequencer.value.import(fileContent)
+          selectedTrack.value = null
         }
         reader.onerror = function (event) {
           document.getElementById("fileUpload")!.innerHTML = "error reading file";

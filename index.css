@@ -167,8 +167,8 @@ input[type="file"] {
     width: 5rem;
 }
 
-.sequencerTracks {
-    /* display: flex;*/
+.sequencerTrackSelected {
+    background-color: #555;
 }
 
 .sequencerTracksStepWrapper {
@@ -190,6 +190,10 @@ input[type="file"] {
         color: #222222;
     };
     background-color: #333;
+}
+
+.sequencerTrackSelected .sequencerStep {
+    background-color: #757167;
 }
 
 .trackStep {
@@ -240,6 +244,10 @@ input[type="file"] {
     top: auto;
     border-top-width: 1px;
     background-color: #2a2823;
+}
+
+.sequencerTrackSelected .trackHeader {
+    background-color: #757167;
 }
 
 .trackBalance {
