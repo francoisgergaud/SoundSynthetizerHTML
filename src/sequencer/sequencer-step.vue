@@ -1,24 +1,29 @@
 <script setup lang="ts">
-    import { onMounted, ref, useTemplateRef } from 'vue';
-    import type { Track } from '../sequencer/sequencer';
+    import { onMounted, ref, useTemplateRef, watch } from 'vue';
 
     const props = defineProps<{
-        track: Track,
-        stepNumber: number
+        stepValue: number | undefined
     }>()
+
+    watch(() => props.stepValue, (oldValue, newValue) => {
+        stepValue.value = newValue
+    });
+
+    const emit = defineEmits(['changeStepValue'])
 
     const trackStepInputHTMLElement = useTemplateRef('trackStepInput')
     const trackStepInputDivHTMLElement = useTemplateRef('trackStepInputDiv')
 
     let editMode = ref<boolean>(false)
-    let stepValue = ref<number>(props.track.getStepValue(props.stepNumber))
+    let stepValue = ref<number | undefined>(props.stepValue)
 
     function showEditMode() {
         editMode.value = true        
     }
 
     function saveStepValue() {
-        props.track.setStepValue(props.stepNumber,stepValue.value)
+        emit('changeStepValue', stepValue.value)
+        //props.track.setStepValue(props.stepNumber,stepValue.value)
         editMode.value = false
     }
 
@@ -44,7 +49,7 @@
 <template>
     <div class="trackStep">
         <div @click="showEditMode" :style="{'display': !editMode ? 'inline': 'none' }">
-            {{stepValue}}
+            {{stepValue?.toFixed(0) || 0}}
         </div>
          <div ref="trackStepInputDiv" :style="{'display': editMode ? 'inline': 'none' }">
             <input ref="trackStepInput" type="text" v-model="stepValue" @blur="saveStepValue"/>
