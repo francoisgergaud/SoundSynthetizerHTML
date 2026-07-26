@@ -92,7 +92,7 @@ export class Sequencer{
         }
     }
 
-    addTrack(trackName: string, config: TrackConfig | null) {
+    addTrack(trackName: string, config: TrackConfig | null): Track {
         const track =  new Track(this.audioContext, trackName, this.speakers, config)
         this.tracks.push(track)
         return track

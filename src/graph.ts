@@ -11,7 +11,7 @@ export type GraphConfig = {[nodeName:string]: {nodeType: string} & NodeConfig}
 
 export class Graph {
 
-    nodes: { [nodeName:string]: {node: SynthBaseNode, type: string }}
+    nodes: { [nodeName:string]: {node: SynthBaseNode, type: string}}
     triggerableNodes: { [nodeName:string]: TriggerBaseNode}
     adujustableFrequencyOscillators: { [nodeName:string]: AudibleFrequencyBaseNode }
     audioContext: AudioContext

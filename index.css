@@ -37,7 +37,7 @@ header {
 }
 
 .navlink a, label {
-    color: #ccc;
+    /*color: #ccc;*/
     text-decoration: none;
     font-size: 1.2em;
 }
@@ -61,14 +61,10 @@ button:hover {
 
 select, input, button{
     padding: 5px 10px;
-}
-
-select {.synth-node-inputs {
-    min-width: 150px;
-}
-    border-radius: 25px;
     background-color: #222222;
     color:#f5ab00;
+    border-radius: 10px;
+    min-width: 50px;
 }
 
 .synth-node {
@@ -108,8 +104,20 @@ select {.synth-node-inputs {
 .synth-node-container {
     margin-top: 10px;
     border-radius: 25px;
-    border: 2px solid #f5ab00;
+    border: 1px solid #f5ab00;
     max-width: 800px;
+    margin-right: 5px;
+}
+
+.drag-over-indicator {
+    border: 1px solid #f5ab00;
+    max-width: 200px;
+    min-height: 300px;
+}
+
+.add-synth-node-container {
+    cursor:pointer;
+    align-self: stretch;
 }
 
 .synth-node-container .header, .sequencerWrapper .header{
@@ -133,15 +141,17 @@ select {.synth-node-inputs {
 }       
 
 .synth-node-control-group{
-    padding: 0.3rem;
+    padding: 0.2rem;
+    font-size: 0.8rem;
+    font-family: Monospace, Arial, Helvetica, sans-serif;
 }
 
 .synth-node-control-group input[type="range"]{
     padding:0;
+    accent-color: #f5ab00;
 }
 
 .synth-node-control-group input[type="text"]{
-    margin-left: 1em;
     width: 40px;
 }
 
@@ -262,4 +272,10 @@ input[type="file"] {
 .scrollableParent {
     overflow-x: scroll;
     overflow-y: visible;
+}
+
+.rack {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
 }

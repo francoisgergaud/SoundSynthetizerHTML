@@ -36,7 +36,7 @@
                     (destinationNodeInputsNames, destinationNodeName) => destinationNodeInputsNames.forEach(
                         (destinationNode, destinationNodeInputName) => {
                             result.push({
-                                label:`${outputName} => ${destinationNodeName}:${destinationNodeInputName}`,
+                                label:`${outputName} &#128313; ${destinationNodeName}:${destinationNodeInputName}`,
                                 outputName: outputName,
                                 destinationNode: destinationNode,
                                 destinationNodeInputName: destinationNodeInputName
@@ -60,36 +60,31 @@
 </script>
 
 <template>
-    <div class="synth-node-container">
-        <div class="synth-node">
+    <div class="synth-node">
+        <div class="synth-node-controls" >
+            <slot/>
+        </div>
+        <div class="synth-node-inputs">
             <label class="header">
-                {{props.node.name}}
+                inputs
             </label>
-            <div class="synth-node-controls" >
-                <slot/>
-            </div>
-            <div class="synth-node-inputs">
-                <label class="header">
-                    inputs
-                </label>
-                <ul>
-                    <li v-for="linkedInput in getLinkedInputs">
-                        <button @click="(event) => removeLinkedInput(linkedInput.inputName, linkedInput.sourceNode, linkedInput.sourceNodeOutputName)">&#x2717;</button>
-                        {{ linkedInput.label }}
-                    </li>
-                </ul>
-            </div>
-            <div class="synth-node-outputs">
-                <label class="header">
-                    outputs
-                </label>
-                <ul>
-                    <li v-for="linkedOutput in getLinkedOutputs">
-                        <button @click="(event) => removeLinkedOutput(linkedOutput.outputName, linkedOutput.destinationNode, linkedOutput.destinationNodeInputName)">&#x2717;</button>
-                        {{ linkedOutput.label}}
-                    </li>
-                </ul>
-            </div>
+            <ul>
+                <li v-for="linkedInput in getLinkedInputs" class="componentLinks">
+                    <button @click="(event) => removeLinkedInput(linkedInput.inputName, linkedInput.sourceNode, linkedInput.sourceNodeOutputName)">&#x2717;</button>
+                    <span>{{ linkedInput.inputName }} &#128309; {{linkedInput.sourceNode.name}}:{{linkedInput.sourceNodeOutputName}}</span>
+                </li>
+            </ul>
+        </div>
+        <div class="synth-node-outputs">
+            <label class="header">
+                outputs
+            </label>
+            <ul>
+                <li v-for="linkedOutput in getLinkedOutputs" class="componentLinks">
+                    <button @click="(event) => removeLinkedOutput(linkedOutput.outputName, linkedOutput.destinationNode, linkedOutput.destinationNodeInputName)">&#x2717;</button>
+                    <span>{{ linkedOutput.outputName }} &#128309; {{linkedOutput.destinationNode.name}}:{{linkedOutput.destinationNodeInputName}}</span>
+                </li>
+            </ul>
         </div>
     </div>
 </template>

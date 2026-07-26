@@ -19,7 +19,7 @@
             }
         }
     )
-    const emit = defineEmits(['selectTrack'])
+    const emit = defineEmits(['selectTrack', 'createTrack'])
 
     const scrollableSequencerTracksWrapperHTMLElement = useTemplateRef('scrollableSequencerTracksWrapper')
     const sequencerTracksWrapperHTMLElement = useTemplateRef('sequencerTracksWrapper')
@@ -160,6 +160,7 @@
     function addTrack(){
         const newTrack = props.sequencer.addTrack(newTrackName.value, null)
         tracks.value.push(createStateFromTrack(newTrack))
+        emit('createTrack', newTrack)
     }
 
     function changeSelectedTrack(trackIndex: number) {

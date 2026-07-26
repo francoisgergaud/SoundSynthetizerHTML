@@ -11,11 +11,9 @@ export abstract class SynthBaseNode {
     
     audioContext: AudioContext
     name: string
-    //linkedInputs:  {[inputName: string]:  { [sourceNodeName: string]: { [sourceOutputName: string]: {sourceNode: SynthBaseNode} }}}
     linkedInputs: Map<string, Map<string, Map<string,SynthBaseNode>>>
-    //linkedOutputs:  {[outputName: string]:  { [destinationNodeName: string]: {[destinationInputName: string]: {destinationNode: SynthBaseNode; } }}}
     linkedOutputs: Map<string, Map<string, Map<string,SynthBaseNode>>>
-    
+
 
     constructor(name: string, audioContext: AudioContext){
         this.name = name
