@@ -31,6 +31,7 @@
 
     const nodeName = ref<string>("")
     const nodeType = ref<string>("vco")
+    const addSynthNodeModalErrorMessage = ref<string>("")
 
     function showAddModuleDialog(rackIndex: number) {
         addModuleCurrentRackIndex.value = rackIndex
@@ -38,13 +39,24 @@
     }
 
     function addSynthModuleOnRack() {
-        props.track.getGraph().addNode(nodeName.value,nodeType.value, null)
-        storeAddSynthModuleOnRack(
-            props.trackNumber,
-            props.track.getGraph().nodes[nodeName.value]!.node,
-            nodeType.value,
-            addModuleCurrentRackIndex.value
-        )
+        if (nodeName.value == ""|| nodeType.value == "") {
+            addSynthNodeModalErrorMessage.value = "Node name or type is empty"
+            return
+        } else if (props.track.getGraph().nodes[nodeName.value]) {
+            addSynthNodeModalErrorMessage.value = "Node name already exists"
+            return
+        } else {
+            addSynthNodeModalErrorMessage.value = ""
+            props.track.getGraph().addNode(nodeName.value,nodeType.value, null)
+            storeAddSynthModuleOnRack(
+                props.trackNumber,
+                props.track.getGraph().nodes[nodeName.value]!.node,
+                nodeType.value,
+                addModuleCurrentRackIndex.value
+            )
+            nodeName.value = ""
+            nodeType.value = ""
+        }
     }
 
     function addRack() {
@@ -137,6 +149,9 @@
         
 
     <dialog ref="addSynthNodeModal">
+
+        <div v-if="addSynthNodeModalErrorMessage" class="error-message">{{ addSynthNodeModalErrorMessage }}</div>
+
         <div class="control-group">
             <select id="nodeType" v-model="nodeType">
             <option value="carrier-oscillator">Carrier Oscillator</option>
@@ -152,6 +167,10 @@
                 
             &nbsp;
             <button id="addNode" @click="(event) => addSynthModuleOnRack()">Add</button>
+        </div>
+
+        <div class="control-group">
+            <button id="cancelAddNode" @click="() => addSynthNodeModal!.close()">Cancel</button>
         </div>
     </dialog>
 </template>
