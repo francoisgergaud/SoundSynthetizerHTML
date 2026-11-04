@@ -4,26 +4,26 @@
   import { SynthBaseNode } from "./synth-modules/synthNodes"
   import { Graph } from "./graph"
   import { Sequencer, Track } from "./sequencer/sequencer"
-  import { rackStore, addTrack as storeAddTrack, exportRackStore, importRackStore } from './synth-modules/rack-store.js'
+  import { exportRackStore, importRackStore } from './synth-modules/rack-store.js'
   import Racks from "./synth-modules/racks.vue"
 
   const audioContext = new AudioContext()
 
   const source = ref<{node: SynthBaseNode, outputName: string} | null>(null)
   const destination = ref<{node: SynthBaseNode, inputName: string} | null>(null)
-  const sequencer = ref<Sequencer>(new Sequencer("sequencer", audioContext))
-  const selectedTrack = ref<Track | null>(null)
-  const selectedTrackIndex = ref<number>(0)
-
+  const graph = ref<Graph>(new Graph(audioContext))
+  // add only one sequencer node with the "sequencer" name. Sequencer node is not available for adding in the racks, 
+  // it is always present in the graph and can be used to control other nodes.
+  const sequencerNode = graph.value.addNode("sequencer", "sequencer", null)
+  const sequencer = ref<Sequencer>(sequencerNode as Sequencer)
 
   function linkNodes() {
     Graph.linkNodes(source.value!.node, source.value!.outputName, destination.value!.node, destination.value!.inputName)
   }
 
   function exportApp() {
-    const sequencerData = sequencer.value.export()
     const dataToExport = {
-      "sequencerData" : sequencerData,
+      "nodes" : graph.value.export(),
       "uiData" : exportRackStore()
     }
     const fileName = "synthModules.json"
@@ -50,9 +50,10 @@
         reader.onload = function (event) {
           const fileContent = JSON.parse(event.target!.result! as string); //UTF-8 content should be automatically decoded as string by browser (no array-buffer)
           //console.debug(`load content ${fileContent}`)
-          sequencer.value = sequencer.value.import(fileContent["sequencerData"])
-          importRackStore(fileContent["uiData"], sequencer.value.getTracks())
-          selectedTrack.value = null
+          graph.value.import(fileContent["nodes"])
+          // a bit of a hack to get the sequencer node from the graph and set it in the sequencer ref. This is needed because the sequencer node is not added to the graph through the racks, but directly in the graph.
+          sequencer.value = graph.value.nodes["sequencer"]!.node as Sequencer
+          importRackStore(fileContent["uiData"], graph.value)
         }
         reader.onerror = function (event) {
           document.getElementById("fileUpload")!.innerHTML = "error reading file";
@@ -62,29 +63,19 @@
     }
   }
 
-  function changeSelectedTrack(trackIndex: number) {
-    selectedTrackIndex.value = trackIndex
-    selectedTrack.value = sequencer.value.getTracks()[trackIndex]!
-  }
-
-  function createTrack(track: Track) {
-    storeAddTrack()
+  function addTrack(track: Track) {
+    // adding a track into a sequencer is not caught by any proxy, so we update the graph' s sequencer with the
+    // same sequencer to the proxy around graph is triggered and the list of outputs is updated. This is a bit stupid, 
+    // but I don't know how to do it better.
+    graph.value.nodes["sequencer"]!.node = sequencer.value
   }
 
   const allInputs: ComputedRef<{[inputName:string]: {node: SynthBaseNode, inputName: string} }> = computed( () =>{
-    if(selectedTrack.value) {
-      return selectedTrack.value.getGraph().getAllInputs()
-    } else {
-      return {}
-    }
+    return graph.value.getAllInputs()
   })
 
   const allOutputs: ComputedRef<{[outputName:string]: {node: SynthBaseNode, outputName: string}}> = computed( () => {
-    if(selectedTrack.value) {
-      return selectedTrack.value.getGraph().getAllOutputs()
-    } else {
-      return {}
-    }
+    return graph.value.getAllOutputs()
   })
 
 </script>
@@ -107,7 +98,7 @@
     <label class="header">
         sequencer
     </label>
-    <SequencerComponent :sequencer="sequencer" @select-track="(trackIndex: number) => changeSelectedTrack(trackIndex)" @create-track="(track: Track) => createTrack(track)"/>
+    <SequencerComponent :sequencer="sequencer" @create-track="(track: Track) => addTrack(track)"/>
   </div>  
 
   
@@ -135,6 +126,7 @@
     &nbsp;
     <button id="addLink" @click="(event) => linkNodes()">Connect nodes</button>
   </div>
-  <Racks v-if="selectedTrack != null" :track="selectedTrack" :trackNumber="selectedTrackIndex"></Racks>
+
+  <Racks :graph="graph"></Racks>
  
 </template>

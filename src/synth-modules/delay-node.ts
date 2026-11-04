@@ -1,4 +1,4 @@
-import { SynthBaseNode, type NodeBaseConfig } from "./synthNodes";
+import { AudioNodeInput, AudioNodeOutput, SynthBaseNode, type NodeBaseConfig, type SynthBaseNodeInput, type SynthBaseNodeOutput } from "./synthNodes";
 
 export type DelayConfig = {
     delayTime: number;
@@ -17,19 +17,16 @@ export class Delay extends SynthBaseNode {
         this.delay.delayTime.value = delayTime;
     }
 
-    getInputs(): {[inputName:string]: AudioParam|AudioNode} {
+    getInputs(): {[inputName:string]: SynthBaseNodeInput} {
         return {
-            "input": this.delay,
-            "delayTime": this.delay.delayTime
+            "input": new AudioNodeInput(this.delay, "input"),
+            "delayTime": new AudioNodeInput(this.delay.delayTime, "delayTime")
         }
     }
 
-    getOutputs():  { [outputName: string]: { node: AudioNode; index: number; }; }{
+    getOutputs():  { [outputName: string]: SynthBaseNodeOutput} {
         return {
-            "output": {
-                "node": this.delay,
-                "index": 0,
-            }
+            "output": new AudioNodeOutput(this.delay, "output", 0)
         }
     }
 

@@ -32,7 +32,7 @@
     const isKeyboardPlaying = ref<boolean>(false)
     let newTrackName = ref<string>("")
     const selectedTrackIndex = ref<number | null>(null)
-    const tracks = ref<{name:string, steps : (number|undefined)[], pan: number, graph: Graph}[]>(new Array())
+    const tracks = ref<{name:string, steps : (number|undefined)[]}[]>(new Array())
 
     //intiialize state tracks from sequencer in properties
     tracks.value = new Array()
@@ -43,17 +43,15 @@
     }
 
 
-    function createStateFromTrack(sequencerTrack: Track): {name:string, steps : (number|undefined)[], pan: number, graph: Graph} {
+    function createStateFromTrack(sequencerTrack: Track): {name:string, steps : (number|undefined)[]} {
         //transorm map of steps into a list
-        const steps = new Array(props.sequencer.numberOfStep).fill(undefined)
+        const steps = new Array(props.sequencer.getNumberOfStep()).fill(undefined)
         for (const stepIndex in sequencerTrack.steps) {
             steps[stepIndex] = sequencerTrack.steps[stepIndex]
         }
         return {
             name: sequencerTrack.name,
-            steps: steps,
-            graph: sequencerTrack.getGraph(),
-            pan: sequencerTrack.trackOutNode.getPan()
+            steps: steps
         }
     }
 
@@ -96,7 +94,7 @@
                 }, 
                 50, 
                 Date.now(), 
-                props.sequencer.trackDurationSeconds*1000, 
+                props.sequencer.getTrackDurationSeconds()*1000, 
                 scrollableSequencerTrackWrapperWidth/sequencerTrackWrapperWidth, 
                 sequencerTrackWrapperWidth
             );
@@ -142,13 +140,13 @@
         recordingTimerId = setInterval(
             () => {
                 const selectedTrackIndexValue = selectedTrackIndex.value!
-                console.debug(`recording: setting track ${selectedTrackIndexValue} step ${props.sequencer.currentStep} value ${recordingFrequency}`)
+                console.debug(`recording: setting track ${selectedTrackIndexValue} step ${props.sequencer.getCurrentStep()} value ${recordingFrequency}`)
                 if(selectedTrackIndexValue != null){
-                    setTrackStepValue(selectedTrackIndexValue, props.sequencer.currentStep, recordingFrequency)
+                    setTrackStepValue(selectedTrackIndexValue, props.sequencer.getCurrentStep(), recordingFrequency)
                     recordingFrequency = 0
                 }
             },
-            props.sequencer.stepDurationTimeSeconds * 1000
+            props.sequencer.getStepDurationTimeSeconds() * 1000
         )
     }
 
@@ -174,13 +172,6 @@
         props.sequencer.getTracks()[trackIndex]!.setStepValue(stepNumber, stepValue)
         // set the reactive property
         tracks.value[trackIndex]!.steps[stepNumber] = stepValue
-    }
-
-    function changeTrackPan(trackIndex: number, value: string) {
-        //set value in sequencer
-        props.sequencer.getTracks()[trackIndex]!.trackOutNode.setPan(+value)
-        // set the reactive property
-        tracks.value[trackIndex]!.pan = +value
     }
 
     const frequencyByKey = fillKeysFrequencyTable()
@@ -210,7 +201,7 @@
             let frequency = frequencyByKey[currentKey + currentOctave.toString()]!
             if(selectedTrackIndex.value != null) {
                 const selectedTrackIndexValue = selectedTrackIndex.value
-                tracks.value[selectedTrackIndexValue]!.graph.trigger(true, frequency)
+                //tracks.value[selectedTrackIndexValue]!.graph.trigger(true, frequency)
                 if(isRecordingEnabled.value) {
                     recordingFrequency = frequency;
                 }
@@ -219,17 +210,17 @@
         }
     }
 
-    window.addEventListener('keydown', manageKeyDown );
+    // window.addEventListener('keydown', manageKeyDown );
 
-    window.addEventListener('keyup', (e) => {
-        if(!isKeyboardPlaying.value) { return }
-        if(selectedTrackIndex.value != null && tracks.value.length > selectedTrackIndex.value) {
-            tracks.value[selectedTrackIndex.value]!.graph.trigger(false, null)
-        }
-        if(isRecordingEnabled.value) {
-            recordingFrequency = 0;
-        }
-    });
+    // window.addEventListener('keyup', (e) => {
+    //     if(!isKeyboardPlaying.value) { return }
+    //     if(selectedTrackIndex.value != null && tracks.value.length > selectedTrackIndex.value) {
+    //         tracks.value[selectedTrackIndex.value]!.graph.trigger(false, null)
+    //     }
+    //     if(isRecordingEnabled.value) {
+    //         recordingFrequency = 0;
+    //     }
+    // });
 
 </script>
 
@@ -250,11 +241,8 @@
                             <div @click="changeSelectedTrack(trackIndex)" class="trackDescription">
                                 {{track.name}}
                             </div>
-                            <div class="trackBalance">
-                                L <input type="range" :id="`${track.name}-balance`" min="-1" max="1" :value="track.pan" step="0.1" @input="(event) => changeTrackPan(trackIndex, (event.currentTarget as HTMLInputElement).value)"> R
-                            </div>
                         </td>
-                        <td v-for="(stepValue, stepIndex) in track.steps" :class="['sequencerStep', {'active': props.sequencer.currentStep == stepIndex}]">
+                        <td v-for="(stepValue, stepIndex) in track.steps" :class="['sequencerStep', {'active': props.sequencer.getCurrentStep() == stepIndex}]">
                             <SequencerStepComponent :step-number="stepIndex - 1" :track-index="trackIndex" :step-value="stepValue" @change-step-value="(stepValue: number | undefined) => setTrackStepValue(trackIndex, stepIndex, stepValue)"/>
                         </td>
                     </tr>

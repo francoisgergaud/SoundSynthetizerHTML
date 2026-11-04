@@ -1,167 +1,175 @@
 import { Graph, type GraphConfig } from "@/graph"
-import { SynthBaseNode, type NodeBaseConfig } from "@/synth-modules/synthNodes"
+import { AudioNodeOutput, GateOutput, SynthBaseNode, type NodeBaseConfig, type SynthBaseNodeInput, type SynthBaseNodeOutput } from "@/synth-modules/synthNodes"
 
 export type SequencerConfig = {
     tracks: TrackConfig[],
     tempo: number,
     numberOfBeat: number,
     numberOfStepsPerBeat: number 
-}
+} & NodeBaseConfig;
 
-export class Sequencer{
-    
-    name: string
-    audioContext: AudioContext
-    previousStep: number // playing previous index
-    currentStep: number // playing current index
-    intervalId: number | null // id of the timer use to sequence the beats' steps
-    numberOfStep: number // the number of steps
-    tracks: Track[]
-    stepDurationTimeSeconds: number // the step time in seconds
-    nextNoteTimeSeconds: number | null
-    numberOfBeat: number
-    numberOfStepsPerBeat: number
-    tempo: number
-    trackDurationSeconds: number
+export class Sequencer extends SynthBaseNode{
+
+    _previousStep: number // playing previous index
+    _currentStep: number // playing current index
+    _numberOfStep: number // the number of steps
+    _tracks: Track[]
+    _stepDurationTimeSeconds: number // the step time in seconds
+    _nextNoteTimeSeconds: number | null
+    _numberOfBeat: number
+    _numberOfStepsPerBeat: number
+    _tempo: number
+    _trackDurationSeconds: number
     _intervalId: number | null
-    speakers: AudioDestinationNode
 
-    constructor(name: string, audioContext: AudioContext) {
-        this.name = name
-        this.audioContext = audioContext
-        this.previousStep = 0
-        this.currentStep = 0
-        this.intervalId = null
-        this.numberOfBeat = 4 // 4 beats
-        this.numberOfStepsPerBeat = 4 //16th notes (4 sub-division in a beat)
-        this.tempo = 90
-        this.trackDurationSeconds = this.numberOfBeat * (60/this.tempo)
-        this.numberOfStep = this.numberOfBeat * this.numberOfStepsPerBeat
-        this.stepDurationTimeSeconds = 60/(this.tempo * this.numberOfStepsPerBeat)
-        this.tracks = []
-        this.nextNoteTimeSeconds = null
+    constructor(name: string, audioContext: AudioContext, config : SequencerConfig | null) {
+        super(name, audioContext)
+
+        this._numberOfBeat = config ? config.numberOfBeat as number : 4
+        this._numberOfStepsPerBeat = config ? config.numberOfStepsPerBeat as number : 4 //16th notes (4 sub-division in a beat)
+        this._tempo = config ? config.tempo as number : 90
+
+        this._trackDurationSeconds = this._numberOfBeat * (60/this._tempo)
+        this._numberOfStep = this._numberOfBeat * this._numberOfStepsPerBeat
+        this._stepDurationTimeSeconds = 60/(this._tempo * this._numberOfStepsPerBeat)
+
+        this._tracks = []
+        if(config) {
+            for(const trackConfig of config.tracks) {
+                this.addTrack(trackConfig.name, trackConfig)
+            }
+        }
+        
+        this._previousStep = 0
+        this._currentStep = 0
+        this._nextNoteTimeSeconds = null
         this._intervalId = null
-        this.speakers = audioContext.destination
+    }
+
+    getInputs(): { [inputName: string]: SynthBaseNodeInput } {
+        return {}
+    }
+    getOutputs(): { [outputName: string]: SynthBaseNodeOutput } {
+        const outputs: { [outputName: string]: SynthBaseNodeOutput } = {}
+        for(const track of this._tracks) {
+            const trackOutputs = track.trackOutNode.getOutputs()
+            for(const outputName in trackOutputs) {
+                outputs[`${track.name}-${outputName}`] = trackOutputs[outputName]!
+            }
+        }
+        return outputs
+    }
+
+    exportNodeData(): NodeBaseConfig {
+        let tracksConfig = []
+        for(const track of this._tracks){
+            tracksConfig.push(track.export())
+        }
+        let result: SequencerConfig = {
+            name: this.name,
+            tracks: tracksConfig,
+            tempo: this._tempo,
+            numberOfBeat: this._numberOfBeat,
+            numberOfStepsPerBeat: this._numberOfStepsPerBeat,
+        }
+        return result;
     }
 
 
     scheduleNextStep() {
-        console.debug(`${this.name}: play step ${this.currentStep} at ${this.nextNoteTimeSeconds}`)
-        for(const track of this.tracks){
-            //console.debug(`track: ${track.name}`)
-            const previousStepValue = track.getStepValue(this.previousStep)
-            const currentStepvalue = track.getStepValue(this.currentStep)
-            //console.debug(`${this.name}: ${track.name} value ${currentStepvalue}`)
-            if(previousStepValue == 0) {
-                if(currentStepvalue != 0) {
-                    track.getGraph().trigger(true, currentStepvalue)
-                }
-            } else {
-                if(currentStepvalue == 0) {
-                    //console.debug(`track ${track.name}: release`)
-                    track.getGraph().trigger(false, null)
-                } else {
-                    track.getGraph().trigger(true, currentStepvalue)
-                }
-            }
-           
+        console.debug(`${this.name}: play step ${this._currentStep} at ${this._nextNoteTimeSeconds}`)
+        this._currentStep = (this._currentStep + 1) % this._numberOfStep
+        this._nextNoteTimeSeconds! += this._stepDurationTimeSeconds
+        for(const track of this._tracks){
+            track.playStepAtTime(this._currentStep, this._nextNoteTimeSeconds!)
         }
-        this.previousStep = this.currentStep
-        this.currentStep = (this.currentStep + 1) % this.numberOfStep
-        this.nextNoteTimeSeconds! += this.stepDurationTimeSeconds
     }
 
     start() {
-        this.previousStep = 0
-        this.currentStep = 0
-        this.nextNoteTimeSeconds = this.audioContext.currentTime
-        const stepDurationTimeMs = this.stepDurationTimeSeconds *1000
+        this._currentStep = -1
+        // to improve: the sequencer start after an empty step duration. IT should start immediatly, schedule the next step immediatly, 
+        // and then schedule the next step while the step before is played
+        this._nextNoteTimeSeconds = this.audioContext.currentTime
+        const stepDurationTimeMs = this._stepDurationTimeSeconds *1000
         this._intervalId = setInterval(this.scheduleNextStep.bind(this), stepDurationTimeMs)
         this.scheduleNextStep()
     }
 
     stop() {
-        for(const track of this.tracks){
-            track.getGraph().trigger(false,0)
+        for(const track of this._tracks){
+            track.stop()
         }
         if (this._intervalId) {
             clearInterval(this._intervalId);
             this._intervalId = null;
-            this.currentStep = 0;
+            this._currentStep = 0;
             console.log("Sequencer stopped.");
         }
     }
 
     addTrack(trackName: string, config: TrackConfig | null): Track {
-        const track =  new Track(this.audioContext, trackName, this.speakers, config)
-        this.tracks.push(track)
+        const track =  new Track(this.audioContext, trackName, config, this._numberOfStep)
+        this._tracks.push(track)
         return track
     }
 
     getTracks(): Track[] {
-        return this.tracks
+        return this._tracks
     }
 
-    export(): SequencerConfig {
-        let tracksConfig = []
-        for(const track of this.tracks){
-            tracksConfig.push(track.export())
-        }
-        let result: SequencerConfig = {
-            tracks: tracksConfig,
-            tempo: this.tempo,
-            numberOfBeat: this.numberOfBeat,
-            numberOfStepsPerBeat: this.numberOfStepsPerBeat,
-        }
-        return result;
+    getTrackDurationSeconds(): number {
+        return this._trackDurationSeconds
     }
 
-    import(config : SequencerConfig): Sequencer {
-        this.stop()
-        let sequencer = new Sequencer("sequencer name", this.audioContext)
-        sequencer.numberOfBeat = config?.numberOfBeat as number
-        sequencer.numberOfStepsPerBeat = config?.numberOfStepsPerBeat as number
-        sequencer.tempo = config?.tempo as number
-        sequencer.trackDurationSeconds = sequencer.numberOfBeat * (60/sequencer.tempo)
-        sequencer.numberOfStep = sequencer.numberOfBeat * sequencer.numberOfStepsPerBeat
-        sequencer.stepDurationTimeSeconds = 60/(sequencer.tempo * sequencer.numberOfStepsPerBeat)
-        sequencer.tracks = []
-        if(config) {
-            for(const trackConfig of config.tracks) {
-                sequencer.addTrack(trackConfig.name, trackConfig)
-            }
-        }
-        return sequencer
+    getNumberOfStep(): number {
+        return this._numberOfStep
+    }
+
+    getStepDurationTimeSeconds(): number {
+        return this._stepDurationTimeSeconds
+    }
+
+    getCurrentStep(): number {
+        return this._currentStep
     }
 }
 
 export type TrackConfig = {
     name: string,
     steps: {[stepId:number]: number| undefined},
-    trackHeaderConfig: TrackOutConfig,
-    graph: GraphConfig
+    trackHeaderConfig: NodeBaseConfig,
 }
 
 export class Track {
 
     name: string
     steps: {[stepId:number]: number|undefined}
-    graph: Graph
     trackOutNode: TrackOutNode
+    _numberOfSteps: number
 
-    constructor(audioContext: AudioContext, name: string, destination: AudioDestinationNode, config: TrackConfig | null) {
-        this.name = name 
+    constructor(audioContext: AudioContext, name: string, config: TrackConfig | null, numberOfSteps: number) {
+        this.name = name
+        this._numberOfSteps = numberOfSteps
         if(config) {
             this.steps = config.steps
         } else {
             this.steps = {}
         }
-        this.trackOutNode = new TrackOutNode(audioContext, destination, config ? config.trackHeaderConfig : null)
-        
-        this.graph = new Graph(audioContext, this.trackOutNode)
-        if(config) {
-            this.graph.import(config.graph)
+        this.trackOutNode = new TrackOutNode(audioContext, name)
+    }
+
+    playStepAtTime(stepNumber: number, time: number) {
+        const previousValue = stepNumber == 0 ? this.getStepValue(this._numberOfSteps - 1) : this.getStepValue(stepNumber - 1)
+        const nextStepValue = this.getStepValue(stepNumber)
+        //trigger only if value changes
+        if(previousValue !== nextStepValue) {
+            this.trackOutNode.playValueAtTime(nextStepValue, time)
+            this.trackOutNode.triggerOutput.trigger(time)
         }
+    }
+
+    stop() {
+        this.trackOutNode.stop()
     }
 
 
@@ -178,62 +186,43 @@ export class Track {
             name: this.name,
             steps: this.steps,
             trackHeaderConfig: this.trackOutNode.exportNodeData(),
-            graph: this.graph.export(),
         }
     }
-
-    getGraph(): Graph {
-        return this.graph
-    }
-
 }
-
-type TrackOutConfig = {
-    pan: number
-} & NodeBaseConfig;
 
 export class TrackOutNode extends SynthBaseNode {
 
-    gain: GainNode
-    panNode: StereoPannerNode
-    panValue: number
+    outputAudioNode: ConstantSourceNode
+    triggerOutput: GateOutput
 
-    constructor(audioContext: AudioContext, destination: AudioDestinationNode, config: TrackOutConfig | null){
-        super("track", audioContext)
-        this.panNode = audioContext.createStereoPanner()
-        this.gain = audioContext.createGain()
-        this.gain.connect(this.panNode)
-        this.panNode.connect(destination)
-        this.panValue = config ? config.pan : 0
+    constructor(audioContext: AudioContext, trackName: string){
+        super(`track ${trackName}`, audioContext)
+        this.outputAudioNode = audioContext.createConstantSource();
+        this.outputAudioNode.offset.value = 0;
+        this.outputAudioNode.start();
+        this.triggerOutput = new GateOutput("trigger");
     }
-    
-    getInputs(): { [inputName: string]: AudioNode; } {
-        return {"out": this.gain}
+
+    playValueAtTime(value: number, time: number) {
+        this.outputAudioNode.offset.setValueAtTime(value, time);
+    }
+
+    stop() {
+        this.outputAudioNode.offset.setValueAtTime(0, this.audioContext.currentTime);
+    }
+
+    getInputs(): { [inputName: string]: SynthBaseNodeInput } {
+        return {}
     }
    
-    getOutputs(): { [outputName: string]: { node: AudioNode; index: number; }; } {
-        return {};
-    }
-
-    exportNodeData(): TrackOutConfig {
+    getOutputs(): { [outputName: string]: SynthBaseNodeOutput } {
         return {
-            ...super.baseExportNodeData(),
-            pan: this.panValue
+            "output": new AudioNodeOutput(this.outputAudioNode, "output", 0),
+            "trigger": this.triggerOutput
         }
     }
 
-    setPan(value: number) {
-        if(value > 1) {
-            this.panValue = 1
-        }else if(value < -1) {
-            this.panValue = -1
-        }
-        this.panValue = value
-        this.panNode.pan.value = this.panValue
+    exportNodeData(): NodeBaseConfig {
+        return super.baseExportNodeData()
     }
-
-    getPan(): number {
-        return this.panValue
-    }
-
 }

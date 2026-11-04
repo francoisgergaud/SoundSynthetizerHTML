@@ -1,4 +1,4 @@
-import { SynthBaseNode, type NodeBaseConfig } from "./synthNodes"
+import { AudioNodeInput, AudioNodeOutput, SynthBaseNode, type NodeBaseConfig, type SynthBaseNodeInput, type SynthBaseNodeOutput } from "./synthNodes"
 
 export class Analyzer extends SynthBaseNode {
 
@@ -10,14 +10,14 @@ export class Analyzer extends SynthBaseNode {
         this.analyzerNode.fftSize = 64
     }
 
-    getInputs(): { [inputName: string]: AudioParam | AudioNode; } {
+    getInputs(): { [inputName: string]: SynthBaseNodeInput } {
         return {
-            "in": this.analyzerNode
+            "in": new AudioNodeInput(this.analyzerNode, "in")
         }
     }
-    getOutputs(): { [outputName: string]: { node: AudioNode; index: number; }; } {
+    getOutputs(): { [outputName: string]: SynthBaseNodeOutput } {
         return {
-            "out": {node: this.analyzerNode, index: 0}
+            "out": new AudioNodeOutput(this.analyzerNode, "out", 0)
         }
     }
     exportNodeData(): NodeBaseConfig {

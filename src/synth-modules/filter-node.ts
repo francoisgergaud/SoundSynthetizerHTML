@@ -1,4 +1,4 @@
-import { SynthBaseNode, type NodeBaseConfig } from "./synthNodes"
+import { AudioNodeInput, AudioNodeOutput, SynthBaseNode, type NodeBaseConfig, type SynthBaseNodeInput, type SynthBaseNodeOutput } from "./synthNodes"
 
 export type FilterConfig = {
     cutoffFrequency: number;
@@ -27,22 +27,19 @@ export class Filter extends SynthBaseNode {
         this.filter.detune.value = filterDetune
     }
 
-    getInputs(){
+    getInputs():  { [inputName: string]: SynthBaseNodeInput}{
         return {
-            "input": this.filter,
-            "cutoffFrequency": this.filter.frequency,
-            "Q": this.filter.Q,
-            "filterGain": this.filter.gain,
-            "cutoffFrequencyDetune": this.filter.detune
+            "input": new AudioNodeInput(this.filter, "input"),
+            "cutoffFrequency": new AudioNodeInput(this.filter.frequency, "cutoffFrequency"),
+            "Q": new AudioNodeInput(this.filter.Q, "Q"),
+            "filterGain": new AudioNodeInput(this.filter.gain, "filterGain"),
+            "cutoffFrequencyDetune": new AudioNodeInput(this.filter.detune, "cutoffFrequencyDetune")
         }
     }
 
-    getOutputs():  { [outputName: string]: { node: AudioNode; index: number; }; }{
+    getOutputs():  { [outputName: string]: SynthBaseNodeOutput} {
         return {
-            "output": {
-                "node": this.filter,
-                "index": 0,
-            }
+            "output": new AudioNodeOutput(this.filter, "output", 0)
         }
     }
 
